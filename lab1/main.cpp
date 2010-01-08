@@ -1,5 +1,6 @@
-#include <boost/regex.hpp>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <vector>
 
 using namespace std;
@@ -44,7 +45,29 @@ int main(int argc, char **argv) {
    }
    */
 
-   //for(int y = 0; y < gHeight; y++
+   bool oddcol = false;
+   bool oddrow = false;
+
+   int lineHeight = gHeight / 8;
+   int lineWidth = gWidth / 8;
+
+   /* set the colors to draw lines */
+   for(int y = 0; y < gHeight; y++) {
+      if(y % lineHeight == 0) {
+        oddcol = !oddcol;
+      }
+ 
+      for(int x=0; x < gWidth; x++) {
+         if(x % lineWidth == 0) {
+	    oddrow = !oddrow;
+	 }
+         if(oddcol && oddrow || !oddcol && !oddrow) {
+            image[y][x].r = 255;
+            image[y][x].g = 255;
+            image[y][x].b = 255;
+         }
+      }
+  }
 
    draw_image(image);
    
@@ -76,7 +99,7 @@ void draw_image(vector< vector<Color> > image) {
          fputc(image[y][x].g, outputFile);
          fputc(image[y][x].b, outputFile);
       }
-      fputs("\n", outputFile);
+      //fputs("\n", outputFile);
    }
 
    /* close file */
