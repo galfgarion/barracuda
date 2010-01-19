@@ -6,8 +6,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <vector>
+#include <boost/spirit.hpp>
+#include <iostream>
 
 using namespace std;
+using namespace boost::spirit;
 
 typedef unsigned char byte;
 
@@ -26,7 +29,40 @@ int parse_int(const char *arg);
 void parse_args(int argc, const char **argv);
 void draw_image(vector< vector<Color> > image); 
 
+class GeomObject {
+};
+
+/*
+class Box : GeomObject {
+};
+
+class Sphere : GeomObject {
+};
+
+class Cone : GeomObject {
+};
+
+class PlanThe function push accepts an iterator str that points to the first matching character, as well as an iterator end pointing to one past the last valid character. We want to attach this function to the integer production rule: e : GeomObject {
+};
+*/
+
+class Triangle : GeomObject {
+
+};
+
+void parse_camera(char const * str, char const * end) {
+   cout << "Parsed a camera object" << endl;
+}
+
+Triangle * parse_triangle(char const * str, char const * end) {
+   cout << "Parsed a triangle object:"<< endl << str << endl;
+   //parse_vector3(str, vector3_p);
+   return new Triangle();
+}
+
 int main(int argc, char **argv) {
+   using qi::double_;
+
    parse_args(argc - 1, (const char **)(argv + 1));
 
    if(gWidth <= 0 || gHeight <= 0) {
@@ -48,6 +84,65 @@ int main(int argc, char **argv) {
       exit(-1);
    }
    */
+
+   rule<> vector3_test = ch_p('<') >> double_ >> ',' >> double_ >> ',' 
+      >> double_ >> '>';
+
+   parse("<1,2,3>", vector3_test, space_p);
+
+   /* experiment with some parser stuff */
+   rule<> vector3_p = ch_p('<') >> *space_p >> real_p 
+      >> ',' >> *space_p >> real_p >> *space_p
+      >> ',' >> *space_p >> real_p >> *space_p >> ch_p('>');
+
+
+   rule<> whitespace_p = *space_p;
+   rule<> ws_p = whitespace_p;
+
+   rule<> anything_p = *(anychar_p) ;
+
+   rule<> camera_p = str_p("camera") >> whitespace_p >> '{' 
+      >> anything_p >> '}';
+
+   rule<> triangle_opts = *space_p >> vector3_p >> *space_p
+      ;
+
+   rule<> triangle_p = str_p("triangle") >> *space_p >> '{'
+      >> triangle_opts >> '}'
+      ;
+
+
+   rule<> identifier = str_p("triangle") |  "light_source" | "sphere" | "plane";
+
+   rule<> triangle_opts =  | 
+   rule<> opt_p = *space_p;
+
+   rule<> object_p = identifier >> *space_p >> '{' >> opt_p >> '}' ;
+
+   //parse_info pinfo = parse("aksdkd <1, 2, 3.5> dkdkas\n", vector_p);
+   //
+   std::string triangle_str = "triangle  { djdjsj }\ncamera\n{ }";
+
+   if(parse("triangle\n\t {\n\n\t  }", object_p[&parse_triangle]).full) {
+   //if(parse("<1, 2, 3>", vector3_p).full) {
+      cout << "Success" << endl;
+   }
+   else {
+      cout << "Fail" << endl;
+   }
+   //
+   std::string test_str = "triangle  { djdjsj }\ncamera\n{ }";
+
+   if(parse("light_source {\n\t }", object_p[&parse_triangle]).full) {
+   //if(parse("<1, 2, 3>", vector3_p).full) {
+      cout << "Success" << endl;
+   }
+   else {
+      cout << "Fail" << endl;
+   }
+
+   //*anychar_p ch_p('\n');
+   //
 
    bool oddcol = false;
    bool oddrow = false;
