@@ -29,10 +29,10 @@ Sphere::Sphere(Vector3 &center, double radius) {
 // returns closest non-negative intersection, or -1 if a non-negative intersection does not exist
 double Sphere::intersect(Ray& ray) {
    
-   Vector3 * originToCenter = _center.subtract(&ray.origin);
+   Vector3 * centerToOrigin = ray.origin.subtract(&_center);
    double A = ray.direction.dot(&ray.direction);
-   double B = 2 * ray.direction.dot(originToCenter);
-   double C = originToCenter->dot(originToCenter) - _radius*_radius;
+   double B = 2 * ray.direction.dot(centerToOrigin);
+   double C = centerToOrigin->dot(centerToOrigin) - _radius*_radius;
 
    double discriminant = B * B - 4 * A * C;
 

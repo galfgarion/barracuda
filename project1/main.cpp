@@ -71,8 +71,15 @@ int main(int argc, char **argv) {
    zaxis.origin = Vector3(0, 0, 14);
    zaxis.direction = Vector3(0, 0, -1);
 
+   Ray misser;
+   misser.origin = Vector3(-4, 0, 14);
+   misser.direction = Vector3(0, 0, -1);
+
    double intersect = sphere.intersect(zaxis);
    cout << "z-axis intersects sphere at: " << intersect << endl;
+
+   intersect = sphere.intersect(misser);
+   cout << "ray that should miss intersects sphere at: " << intersect << endl;
 
    /* clear the colors */
    for(int x = 0; x < gPixelWidth; x++) {
@@ -83,7 +90,7 @@ int main(int argc, char **argv) {
          ray.origin = *screen.pixelToScreen(x, y);
 
          //cout << "ray.origin: <" << ray.origin.x << "," << ray.origin.y << "," << ray.origin.z << ">" << endl;
-         ray.direction = lookAt;
+         ray.direction = Vector3(0, 0, -1);
 
          if(sphere.intersect(ray) > 0) {
             image[x][y].r = 255;
