@@ -8,10 +8,10 @@ class Vector3
 {
    public:
 
-   float x;
-   float y;
-   float z;
-   Vector3(float in_x, float in_y, float in_z) : x(in_x), y(in_y), z(in_z) {}
+   double x;
+   double y;
+   double z;
+   Vector3(double in_x, double in_y, double in_z) : x(in_x), y(in_y), z(in_z) {}
    Vector3() {}
 
    Vector3 * add(Vector3 *other);
@@ -20,8 +20,8 @@ class Vector3
    Vector3 * inverse();
    Vector3 * subtract(Vector3 *other);
    Vector3 * normalize();
-   float magnitude();
-   Vector3 * multiply(float k);
+   double magnitude();
+   Vector3 * multiply(double k);
 
 };
 

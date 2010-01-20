@@ -43,22 +43,22 @@
    
    Vector3 * Vector3::normalize()
    {
-      float magn = this->magnitude();
+      double magn = this->magnitude();
 
       if(magn == 0.0)
          return new Vector3(*this);
 
-      float inv_mag = 1.0f / magn;
+      double inv_mag = 1.0f / magn;
 
       return this->multiply(inv_mag);
    }
 
-   float Vector3::magnitude()
+   double Vector3::magnitude()
    {
       return sqrt(abs(x*x + y*y + z*z));
    }
 
-   Vector3 * Vector3::multiply(float k)
+   Vector3 * Vector3::multiply(double k)
    {
       Vector3 * product = new Vector3(*this);
       product->x *= k;
@@ -90,7 +90,7 @@ void obsolete_addVector3(const Vector3 * a, const Vector3 * b, Vector3 * result)
    result->z = b->z + a->z;
 }
 
-void multVector3(const Vector3 * a, float k, Vector3 * result)
+void multVector3(const Vector3 * a, double k, Vector3 * result)
 {
    result->x = a->x * k;
    result->y = a->y * k;
