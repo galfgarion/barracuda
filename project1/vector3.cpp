@@ -1,6 +1,5 @@
 #include "vector3.h"
 
-
    Vector3 * Vector3::add(Vector3 *other)
    {
       Vector3 *sum = new Vector3(*this);
@@ -68,32 +67,9 @@
       return product;
    }
 
-void obsolete_crossProduct(const Vector3 * b, const Vector3 * c, Vector3 * result)
-{
-   Vector3 a;
-   a.x = (b->y * c->z - b->z * c->y);
-   a.y = (b->z * c->x - b->x * c->z);
-   a.z = (b->x * c->y - b->y * c->x);
-
-   *result = a;
-}
-
-void obsolete_subtractVector3(const Vector3 * a, const Vector3 * b, Vector3 * result)
-{
-   *result = Vector3(b->x - a->x, b->y - a->y, b->z - a->z);
-}
-
-void obsolete_addVector3(const Vector3 * a, const Vector3 * b, Vector3 * result)
-{
-   result->x = b->x + a->x;
-   result->y = b->y + a->y; 
-   result->z = b->z + a->z;
-}
-
 void multVector3(const Vector3 * a, double k, Vector3 * result)
 {
    result->x = a->x * k;
    result->y = a->y * k;
    result->z = a->z * k;
 }
-
