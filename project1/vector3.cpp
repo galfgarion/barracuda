@@ -1,4 +1,7 @@
 #include "vector3.h"
+#include <string>
+#include <sstream>
+#include <cstring>
 
    Vector3 * Vector3::add(Vector3 *other)
    {
@@ -71,9 +74,12 @@
       return other->x * x + other->y * y + other->z * z;
    }
 
-void multVector3(const Vector3 * a, double k, Vector3 * result)
-{
-   result->x = a->x * k;
-   result->y = a->y * k;
-   result->z = a->z * k;
-}
+   const char * Vector3::c_str() {
+      std::ostringstream o;
+      o << "<" << x << ", " << y << ", " << z << ">";
+      std::string str = o.str();
+      char * cstr = new char[str.size() + 1];
+      strcpy(cstr, str.c_str());
+      return cstr;
+   }
+

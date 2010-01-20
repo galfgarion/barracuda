@@ -65,7 +65,7 @@ int main(int argc, char **argv) {
    }
 
    Vector3 center = Vector3(0,0,0);
-   Sphere sphere = Sphere(center, 2.0);
+   Sphere sphere = Sphere(center, 0.2);
 
    Ray zaxis;
    zaxis.origin = Vector3(0, 0, 14);
@@ -81,10 +81,21 @@ int main(int argc, char **argv) {
    intersect = sphere.intersect(misser);
    cout << "ray that should miss intersects sphere at: " << intersect << endl;
 
+   // try the top left corner
+   misser.origin = *screen.pixelToScreen(0, 0);
+   cout << "Top left corner is thought to be: " << misser.origin.c_str() << endl;
+   cout << "result is of intersect is: " << sphere.intersect(misser) << endl;
+
+   zaxis.origin = *screen.pixelToScreen(gPixelWidth/2, gPixelHeight/2);
+   cout << "Center of screen is thought to be: " << zaxis.origin.c_str() << endl;
+   cout << "result is of intersect is: " << sphere.intersect(zaxis) << endl;
+
+
+
    /* clear the colors */
    for(int x = 0; x < gPixelWidth; x++) {
       for(int y = 0; y < gPixelHeight; y++) {
-         double distance = numeric_limits<double>::max();
+         //double distance = numeric_limits<double>::max();
 
          Ray ray;
          ray.origin = *screen.pixelToScreen(x, y);

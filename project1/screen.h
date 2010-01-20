@@ -21,12 +21,11 @@ Screen::Screen(int pixelWidth, int pixelHeight, Vector3& cameraLocation, double 
    _right = right;
    _top = top;
    _bottom = bottom;
-   _near = 1;
    _cameraLocation = Vector3(cameraLocation);
 }
 
 Vector3 * Screen::pixelToScreen(int x, int y) {
-   return new Vector3(pixelToScreenX(x), pixelToScreenY(y), _near);
+   return new Vector3(pixelToScreenX(x), pixelToScreenY(y), _cameraLocation.z);
 }
 
 double Screen::pixelToScreenX(int x) {

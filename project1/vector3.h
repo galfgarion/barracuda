@@ -23,6 +23,7 @@ class Vector3
    double magnitude();
    Vector3 * multiply(double k);
    double dot(Vector3 *const & other);
+   const char * c_str();
 
 };
 
