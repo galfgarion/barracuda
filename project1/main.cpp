@@ -11,9 +11,6 @@
 
 #include "vector3.h"
 
-
-#define FNAME_LEN 20
-
 using namespace std;
 
 typedef unsigned char byte;
@@ -28,7 +25,7 @@ typedef struct image_t {
 // globals
 int gPixelWidth = -1;
 int gPixelHeight = -1;
-char gInputFileName[FNAME_LEN];
+string gInputFileName ("");
 
 int parse_int(const char *arg);
 void parse_args(int argc, const char **argv);
@@ -41,15 +38,15 @@ int main(int argc, char **argv) {
 
    parse_args(argc - 1, (const char **)(argv + 1));
 
-   if(gPixelWidth <= 0 || gPixelHeight <= 0) {
-      printf("Usage: %s +W<int> +H<int>\n", argv[0]);
+   if(gPixelWidth <= 0 || gPixelHeight <= 0 || gInputFileName.compare(string("")) == 0) {
+      printf("Usage: %s +W<int> +H<int> +I<pov input file>\n", argv[0]);
       exit(-1);
    }
 
    printf("Valid args accepted\n");
    printf("Width: %d\n", gPixelWidth);
    printf("Height: %d\n", gPixelHeight);
-   printf("Input file: %s\n", gInputFileName);
+   printf("Input file: %s\n", gInputFileName.c_str());
 
    /* allocate the image */
    vector< vector<Color> > image(gPixelWidth, vector<Color>(gPixelHeight));
@@ -100,7 +97,7 @@ void draw_image(vector< vector<Color> > image) {
       outputFileName = outputFileName + ".ppm";
    }
 
-   cout << "Output filename: " << outputFileName;
+   cout << "Output filename: " << outputFileName << endl;
 
    /* o	pen file */
    FILE * outputFile = fopen(outputFileName.c_str(), "w");
@@ -141,8 +138,7 @@ void parse_args(int argc, const char **argv) {
       gPixelWidth = parse_int(argv[0]);
    }
    else if(strncmp(argv[0], "+I", 2) == 0) {
-      strncpy(gInputFileName, argv[0] + 2, FNAME_LEN);  
-      gInputFileName[FNAME_LEN - 1] = '\0'; // ensure fname is null-terminated
+      gInputFileName = string(argv[0] + 2);  
    }
    else {
       printf("Unknown argument: %s", argv[0]);
