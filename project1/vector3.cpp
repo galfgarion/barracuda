@@ -30,7 +30,7 @@
       return new Vector3(-x, -y, -z);
    }
   
-   Vector3 * Vector3::subtract(Vector3 *other)
+   Vector3 * Vector3::subtract(Vector3 * const & other)
    {
       Vector3 *diff = new Vector3(*this);
       diff->x -= other->x;

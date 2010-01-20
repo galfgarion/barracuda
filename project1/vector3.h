@@ -18,7 +18,7 @@ class Vector3
    Vector3 * cross(Vector3 *other);
    bool equals(Vector3 *other);
    Vector3 * inverse();
-   Vector3 * subtract(Vector3 *other);
+   Vector3 * subtract(Vector3 * const & other);
    Vector3 * normalize();
    double magnitude();
    Vector3 * multiply(double k);

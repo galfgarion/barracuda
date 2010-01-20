@@ -64,12 +64,30 @@ int main(int argc, char **argv) {
       }
    }
 
+   Vector3 center = Vector3(0,0,0);
+   Sphere sphere = Sphere(center, 2.0);
+
+   Ray zaxis;
+   zaxis.origin = Vector3(0, 0, 14);
+   zaxis.direction = Vector3(0, 0, -1);
+
+   double intersect = sphere.intersect(zaxis);
+   cout << "z-axis intersects sphere at: " << intersect << endl;
+
    /* clear the colors */
    for(int x = 0; x < gPixelWidth; x++) {
-      for(int y=0; y < gPixelHeight; y++) {
+      for(int y = 0; y < gPixelHeight; y++) {
          double distance = numeric_limits<double>::max();
 
+         Ray ray;
+         ray.origin = *screen.pixelToScreen(x, y);
 
+         //cout << "ray.origin: <" << ray.origin.x << "," << ray.origin.y << "," << ray.origin.z << ">" << endl;
+         ray.direction = lookAt;
+
+         if(sphere.intersect(ray) > 0) {
+            image[x][y].r = 255;
+         }
       }
    }
 
