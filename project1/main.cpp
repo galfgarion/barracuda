@@ -4,11 +4,15 @@
  */
 #include <stdio.h>
 #include <stdlib.h>
+#include <string>
 #include <string.h>
 #include <vector>
 #include <iostream>
 
 #include "vector3.h"
+
+
+#define FNAME_LEN 20
 
 using namespace std;
 
@@ -24,11 +28,13 @@ typedef struct image_t {
 // globals
 int gPixelWidth = -1;
 int gPixelHeight = -1;
-char inputFileName [10];
+char gInputFileName[FNAME_LEN];
 
 int parse_int(const char *arg);
 void parse_args(int argc, const char **argv);
 void draw_image(vector< vector<Color> > image); 
+Vector3 pixel_to_screen_x(double const x, double const y,
+   double const left, double const right, double const top, double const bottom);
 
 class GeomObject {
 };
@@ -73,6 +79,7 @@ int main(int argc, char **argv) {
    printf("Valid args accepted\n");
    printf("Width: %d\n", gPixelWidth);
    printf("Height: %d\n", gPixelHeight);
+   printf("Input file: %s\n", gInputFileName);
 
    /* allocate the image */
    vector< vector<Color> > image(gPixelWidth, vector<Color>(gPixelHeight));
@@ -113,11 +120,20 @@ int main(int argc, char **argv) {
 
 void draw_image(vector< vector<Color> > image) {
    /* determine the output file name */
-   // TODO this is a fake
-   char outputFileName[] = "output.ppm";
+   string outputFileName (gInputFileName);
+
+   size_t pos = outputFileName.find(".pov");
+
+   if(pos != string::npos) {
+      outputFileName.replace(pos, 4, ".ppm");
+   } else {
+      outputFileName = outputFileName + ".ppm";
+   }
+
+   cout << "Output filename: " << outputFileName;
 
    /* o	pen file */
-   FILE * outputFile = fopen(outputFileName, "w");
+   FILE * outputFile = fopen(outputFileName.c_str(), "w");
    if(NULL == outputFile) {
       perror("draw_image()");
       exit(-1);
@@ -153,6 +169,10 @@ void parse_args(int argc, const char **argv) {
    }
    else if(strncmp(argv[0], "+W", 2) == 0) {
       gPixelWidth = parse_int(argv[0]);
+   }
+   else if(strncmp(argv[0], "+I", 2) == 0) {
+      strncpy(gInputFileName, argv[0] + 2, FNAME_LEN);  
+      gInputFileName[FNAME_LEN - 1] = '\0'; // ensure fname is null-terminated
    }
    else {
       printf("Unknown argument: %s", argv[0]);
