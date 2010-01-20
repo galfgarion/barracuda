@@ -49,8 +49,12 @@ int main(int argc, char **argv) {
    printf("Input file: %s\n", gInputFileName.c_str());
 
    Vector3 cameraLocation = Vector3(0, 0, 14);
+   Vector3 right = Vector3(1.3333, 0, 0);
+   Vector3 up = Vector3(0, 1, 0);
    Vector3 lookAt = Vector3(0, 0, 0);
-   Screen screen = Screen(gPixelWidth, gPixelHeight, cameraLocation, -1.3333, 1.3333, 1, -1);
+   Screen screen = Screen(gPixelWidth, gPixelHeight, cameraLocation, -right.magnitude() / 2.0,
+      right.magnitude() / 2.0, up.magnitude() / 2.0, -up.magnitude() / 2.0);
+   //Screen screen = Screen(gPixelWidth, gPixelHeight, cameraLocation, -1.3333 / 2.0, 1.3333 / 2.0, 1 / 2.0, -1 / 2.0);
 
    /* allocate the image */
    vector< vector<Color> > image(gPixelWidth, vector<Color>(gPixelHeight));

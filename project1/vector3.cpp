@@ -57,7 +57,7 @@
 
    double Vector3::magnitude()
    {
-      return sqrt(abs(x*x + y*y + z*z));
+      return sqrt(x*x + y*y + z*z);
    }
 
    Vector3 * Vector3::multiply(double k)
