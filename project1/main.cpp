@@ -30,36 +30,6 @@ int parse_int(const char *arg);
 void parse_args(int argc, const char **argv);
 void draw_image(vector< vector<Color> > image); 
 
-class GeomObject {
-};
-
-/*
-class Box : GeomObject {
-};
-
-class Sphere : GeomObject {
-};
-
-class Cone : GeomObject {
-};
-
-class PlanThe function push accepts an iterator str that points to the first matching character, as well as an iterator end pointing to one past the last valid character. We want to attach this function to the integer production rule: e : GeomObject {
-};
-*/
-
-class Triangle : GeomObject {
-
-};
-
-void parse_camera(char const * str, char const * end) {
-   cout << "Parsed a camera object" << endl;
-}
-
-Triangle * parse_triangle(char const * str, char const * end) {
-   cout << "Parsed a triangle object:"<< endl << str << endl;
-   //parse_vector3(str, vector3_p);
-   return new Triangle();
-}
 
 int main(int argc, char **argv) {
 
