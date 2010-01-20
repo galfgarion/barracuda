@@ -67,6 +67,10 @@
       return product;
    }
 
+   double Vector3::dot(Vector3 *const &other) {
+      return other->x * x + other->y * y + other->z * z;
+   }
+
 void multVector3(const Vector3 * a, double k, Vector3 * result)
 {
    result->x = a->x * k;

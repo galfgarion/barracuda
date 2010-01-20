@@ -2,7 +2,7 @@
 #define _SCREEN_H
 class Screen {
    public:
-      Screen(int pixelWidth, int pixelHeight, double left, double right, double top, double bottom);
+      Screen(int pixelWidth, int pixelHeight, Vector3& cameraLocation, double left, double right, double top, double bottom);
       Vector3 * pixelToScreen(int x, int y);
 
    protected:
@@ -11,9 +11,10 @@ class Screen {
    private:
       int _pixelWidth, _pixelHeight;
       double _left, _right, _top, _bottom, _near;
+      Vector3 _cameraLocation;
 };
 
-Screen::Screen(int pixelWidth, int pixelHeight, double left, double right, double top, double bottom) {
+Screen::Screen(int pixelWidth, int pixelHeight, Vector3& cameraLocation, double left, double right, double top, double bottom) {
    _pixelWidth = pixelWidth;
    _pixelHeight = pixelHeight;
    _left = left;
@@ -21,6 +22,7 @@ Screen::Screen(int pixelWidth, int pixelHeight, double left, double right, doubl
    _top = top;
    _bottom = bottom;
    _near = 1;
+   _cameraLocation = Vector3(cameraLocation);
 }
 
 Vector3 * Screen::pixelToScreen(int x, int y) {

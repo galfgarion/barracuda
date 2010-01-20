@@ -22,6 +22,7 @@ class Vector3
    Vector3 * normalize();
    double magnitude();
    Vector3 * multiply(double k);
+   double dot(Vector3 *const & other);
 
 };
 

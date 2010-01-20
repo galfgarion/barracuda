@@ -8,9 +8,11 @@
 #include <string.h>
 #include <vector>
 #include <iostream>
+#include <limits>
 
 #include "vector3.h"
 #include "screen.h"
+#include "geom.h"
 
 using namespace std;
 
@@ -46,37 +48,30 @@ int main(int argc, char **argv) {
    printf("Height: %d\n", gPixelHeight);
    printf("Input file: %s\n", gInputFileName.c_str());
 
+   Vector3 cameraLocation = Vector3(0, 0, 14);
+   Vector3 lookAt = Vector3(0, 0, 0);
+   Screen screen = Screen(gPixelWidth, gPixelHeight, cameraLocation, -1.3333, 1.3333, 1, -1);
+
    /* allocate the image */
    vector< vector<Color> > image(gPixelWidth, vector<Color>(gPixelHeight));
    
-   bool oddcol = false;
-   bool oddrow = false;
-
-   int lineHeight = gPixelHeight / 8;
-   int lineWidth = gPixelWidth / 8;
-
-   /* set the colors to draw lines */
+   /* clear the colors */
    for(int x = 0; x < gPixelWidth; x++) {
-      if(x % lineWidth == 0) {
-        oddcol = !oddcol;
-      }
- 
       for(int y=0; y < gPixelHeight; y++) {
-         if(y % lineHeight == 0) {
-             oddrow = !oddrow;
-		 }
-         if(oddcol && oddrow || !oddcol && !oddrow) {
-            image[x][y].r = 255;
-            image[x][y].g = 255;
-            image[x][y].b = 255;
-         }
-         else {
-            image[x][y].r = 0;
-            image[x][y].g = 0;
-            image[x][y].b = 0;
-         }
+         image[x][y].r = 0;
+         image[x][y].g = 0;
+         image[x][y].b = 0;
       }
-  }
+   }
+
+   /* clear the colors */
+   for(int x = 0; x < gPixelWidth; x++) {
+      for(int y=0; y < gPixelHeight; y++) {
+         double distance = numeric_limits<double>::max();
+
+
+      }
+   }
 
    draw_image(image);
    
