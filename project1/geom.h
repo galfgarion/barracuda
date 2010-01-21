@@ -21,6 +21,33 @@ class Sphere: public GeomObject {
 
 };
 
+class Plane: public GeomObject {
+   public:
+      Plane(Vector3& normal, double d);
+      double intersect(Ray& ray);
+
+   private:
+      Vector3 _normal;
+      double _d;
+};
+
+Plane::Plane(Vector3& normal, double d) {
+   _normal = normal;
+   _d = d;
+}
+
+double Plane::intersect(Ray& ray) {
+   Vector3 p1 = *_normal.multiply(-_d);
+   double denom = ray.direction.dot(&_normal);
+
+   if(denom == 0) {
+      return -1.0;
+   }
+
+   double numerator = p1.subtract(&ray.origin)->dot(&_normal);
+   return numerator / denom;
+}
+
 Sphere::Sphere(Vector3 &center, double radius) {
    _center = Vector3(center);
    _radius = radius;

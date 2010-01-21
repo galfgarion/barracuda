@@ -69,7 +69,10 @@ int main(int argc, char **argv) {
    }
 
    Vector3 center = Vector3(0,0,0);
-   Sphere sphere = Sphere(center, 0.2);
+   Sphere sphere = Sphere(center, 2.0);
+
+   Vector3 normal = Vector3(0, 1, 0);
+   Plane plane = Plane(normal, -4);
 
    Ray zaxis;
    zaxis.origin = Vector3(0, 0, 14);
@@ -99,16 +102,28 @@ int main(int argc, char **argv) {
    /* clear the colors */
    for(int x = 0; x < gPixelWidth; x++) {
       for(int y = 0; y < gPixelHeight; y++) {
-         //double distance = numeric_limits<double>::max();
+         double closest = numeric_limits<double>::max();
 
          Ray ray;
          ray.origin = *screen.pixelToScreen(x, y);
 
          //cout << "ray.origin: <" << ray.origin.x << "," << ray.origin.y << "," << ray.origin.z << ">" << endl;
-         ray.direction = Vector3(0, 0, -1);
+         ray.direction = *ray.origin.subtract(&cameraLocation);
 
-         if(sphere.intersect(ray) > 0) {
+         double distance = sphere.intersect(ray);
+
+         if(distance > 0 && distance < closest) {
+            closest = distance;
             image[x][y].r = 255;
+            me/ntblack/csc473/project1/simple.ppm' 
+         }
+
+         distance = plane.intersect(ray);
+         if(distance > 0 && distance < closest) {
+            closest = distance;
+            image[x][y].r = 0;
+            image[x][y].g = 255;
+            image[x][y].b = 0;
          }
       }
    }
