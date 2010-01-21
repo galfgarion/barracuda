@@ -16,11 +16,6 @@
 
 using namespace std;
 
-typedef unsigned char byte;
-
-typedef struct color_t {
-   byte r, g, b;
-} Color;
 
 typedef struct image_t {
 } Image;
@@ -99,6 +94,17 @@ int main(int argc, char **argv) {
 
    vector<GeomObject*> objects;
 
+   Color red = {255, 0, 0};
+   Color blue = {0, 0, 255};
+   
+   sphere.color.r = 0;
+   sphere.color.g = 0;
+   sphere.color.b = 255;
+   
+   plane.color.r = 255;
+   plane.color.g = 0;
+   plane.color.b = 0;
+
    objects.push_back(&sphere);
    objects.push_back(&plane);
 
@@ -113,23 +119,16 @@ int main(int argc, char **argv) {
          //cout << "ray.origin: <" << ray.origin.x << "," << ray.origin.y << "," << ray.origin.z << ">" << endl;
          ray.direction = *ray.origin.subtract(&cameraLocation);
 
-         for(int i=0; i < objects.size(); i++) {
+         double distance = 0;
+
+         for(unsigned int i=0; i < objects.size(); i++) {
             distance = objects[i]->intersect(ray);
-         }
-
-         double distance = sphere.intersect(ray);
-
-         if(distance > 0 && distance < closest) {
-            closest = distance;
-            image[x][y].r = 255;
-         }
-
-         distance = plane.intersect(ray);
-         if(distance > 0 && distance < closest) {
-            closest = distance;
-            image[x][y].r = 0;
-            image[x][y].g = 255;
-            image[x][y].b = 0;
+            if(distance > 0 && distance < closest) {
+               closest = distance;
+               image[x][y].r = objects[i]->color.r;
+               image[x][y].g = objects[i]->color.g;
+               image[x][y].b = objects[i]->color.b;
+            }
          }
       }
    }
@@ -169,9 +168,10 @@ void draw_image(vector< vector<Color> > image) {
    /* write pixel info */
    for(int y = 0; y < gPixelHeight; y++) {
       for(int x = 0; x < gPixelWidth; x++) {
-         fputc(image[x][y].r, outputFile);
+         // irfanview in windows seems to want gbr ordering
          fputc(image[x][y].g, outputFile);
          fputc(image[x][y].b, outputFile);
+         fputc(image[x][y].r, outputFile);
       }
       //fputs("\n", outputFile);
    }

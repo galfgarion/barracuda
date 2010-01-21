@@ -5,9 +5,16 @@ typedef struct s_ray {
    Vector3 origin; 
 } Ray;
 
+typedef unsigned char byte;
+
+typedef struct color_t {
+   byte r, g, b;
+} Color;
+
 class GeomObject {
    public:
       virtual double intersect(Ray&) = 0; // pure virtual fn
+      Color color;
 };
 
 class Sphere: public GeomObject {
