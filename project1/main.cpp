@@ -169,9 +169,15 @@ void draw_image(vector< vector<Color> > image) {
    for(int y = 0; y < gPixelHeight; y++) {
       for(int x = 0; x < gPixelWidth; x++) {
          // irfanview in windows seems to want gbr ordering
+#ifdef _WIN32
          fputc(image[x][y].g, outputFile);
          fputc(image[x][y].b, outputFile);
          fputc(image[x][y].r, outputFile);
+#else
+         fputc(image[x][y].r, outputFile);
+         fputc(image[x][y].g, outputFile);
+         fputc(image[x][y].b, outputFile);
+#endif
       }
       //fputs("\n", outputFile);
    }
