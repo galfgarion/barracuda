@@ -9,6 +9,7 @@
 #include <vector>
 #include <iostream>
 #include <limits>
+#include <fstream>
 
 #include "vector3.h"
 #include "screen.h"
@@ -27,7 +28,8 @@ string gInputFileName ("");
 
 int parse_int(const char *arg);
 void parse_args(int argc, const char **argv);
-void draw_image(vector< vector<Color> > image); 
+void draw_image(vector< vector<Color> > image);
+void parse_file();
 
 int main(int argc, char **argv) {
 
@@ -69,34 +71,13 @@ int main(int argc, char **argv) {
    Vector3 normal = Vector3(0, 1, 0);
    Plane plane = Plane(normal, -4);
 
-   Ray zaxis;
-   zaxis.origin = Vector3(0, 0, 14);
-   zaxis.direction = Vector3(0, 0, -1);
 
-   Ray misser;
-   misser.origin = Vector3(-4, 0, 14);
-   misser.direction = Vector3(0, 0, -1);
 
-   double intersect = sphere.intersect(zaxis);
-   cout << "z-axis intersects sphere at: " << intersect << endl;
-
-   intersect = sphere.intersect(misser);
-   cout << "ray that should miss intersects sphere at: " << intersect << endl;
-
-   // try the top left corner
-   misser.origin = *screen.pixelToScreen(0, 0);
-   cout << "Top left corner is thought to be: " << misser.origin.c_str() << endl;
-   cout << "result is of intersect is: " << sphere.intersect(misser) << endl;
-
-   zaxis.origin = *screen.pixelToScreen(gPixelWidth/2, gPixelHeight/2);
-   cout << "Center of screen is thought to be: " << zaxis.origin.c_str() << endl;
-   cout << "result is of intersect is: " << sphere.intersect(zaxis) << endl;
 
    vector<GeomObject*> objects;
 
-   Color red = {255, 0, 0};
-   Color blue = {0, 0, 255};
-   
+   parse_file();
+
    sphere.color.r = 0;
    sphere.color.g = 0;
    sphere.color.b = 255;
@@ -136,6 +117,43 @@ int main(int argc, char **argv) {
    draw_image(image);
    
    return 0;
+}
+
+void parse_file() {
+   string delimiters = " \n\t<>,{}";
+    vector<string> tokens;
+    
+   
+    ifstream file(gInputFileName.c_str());
+    string str;
+
+    while(!file.eof()) {
+       getline(file, str);
+       // Skip delimiters at beginning.
+       string::size_type lastPos = str.find_first_not_of(delimiters, 0);
+       // Find first "non-delimiter".
+       string::size_type pos     = str.find_first_of(delimiters, lastPos);
+
+       while (string::npos != pos || string::npos != lastPos)
+       {
+           // handle comments
+          if(pos - lastPos > 1 && strncmp(str.substr(lastPos, 2).c_str(), "//", 2) == 0) {
+             break;
+          }
+           // Found a token, add it to the vector.
+           tokens.push_back(str.substr(lastPos, pos - lastPos));
+           // Skip delimiters.  Note the "not_of"
+           lastPos = str.find_first_not_of(delimiters, pos);
+           // Find next "non-delimiter"
+           pos = str.find_first_of(delimiters, lastPos);
+       }
+    }
+   
+   for(unsigned int i=0; i < tokens.size(); i++) {
+       cout << tokens[i];
+       cout << endl;
+   }
+
 }
 
 void draw_image(vector< vector<Color> > image) {
