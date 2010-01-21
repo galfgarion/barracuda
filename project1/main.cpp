@@ -97,7 +97,10 @@ int main(int argc, char **argv) {
    cout << "Center of screen is thought to be: " << zaxis.origin.c_str() << endl;
    cout << "result is of intersect is: " << sphere.intersect(zaxis) << endl;
 
+   vector<GeomObject*> objects;
 
+   objects.push_back(&sphere);
+   objects.push_back(&plane);
 
    /* clear the colors */
    for(int x = 0; x < gPixelWidth; x++) {
@@ -110,12 +113,15 @@ int main(int argc, char **argv) {
          //cout << "ray.origin: <" << ray.origin.x << "," << ray.origin.y << "," << ray.origin.z << ">" << endl;
          ray.direction = *ray.origin.subtract(&cameraLocation);
 
+         for(int i=0; i < objects.size(); i++) {
+            distance = objects[i]->intersect(ray);
+         }
+
          double distance = sphere.intersect(ray);
 
          if(distance > 0 && distance < closest) {
             closest = distance;
             image[x][y].r = 255;
-            me/ntblack/csc473/project1/simple.ppm' 
          }
 
          distance = plane.intersect(ray);

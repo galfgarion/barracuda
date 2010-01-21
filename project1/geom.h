@@ -13,7 +13,7 @@ class GeomObject {
 class Sphere: public GeomObject {
    public:
       Sphere(Vector3& center, double radius);
-      double intersect(Ray&);
+      double intersect(Ray& ray);
 
    private:
       Vector3 _center;
