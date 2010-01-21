@@ -7,6 +7,7 @@
 #include <string>
 #include <string.h>
 #include <vector>
+#include <deque>
 #include <iostream>
 #include <limits>
 #include <fstream>
@@ -121,7 +122,7 @@ int main(int argc, char **argv) {
 
 void parse_file() {
    string delimiters = " \n\t<>,{}";
-    vector<string> tokens;
+    deque<string> tokens;
     
    
     ifstream file(gInputFileName.c_str());
@@ -149,9 +150,10 @@ void parse_file() {
        }
     }
    
-   for(unsigned int i=0; i < tokens.size(); i++) {
-       cout << tokens[i];
+   while( tokens.size() > 0) {
+       cout << tokens.front();
        cout << endl;
+       tokens.pop_front(); 
    }
 
 }

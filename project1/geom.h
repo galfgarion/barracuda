@@ -1,4 +1,9 @@
+#include <deque>
+#include <iostream>
+#include <assert.h>
 #include "vector3.h"
+
+using namespace std;
 
 typedef struct s_ray {
    Vector3 direction;
@@ -92,3 +97,26 @@ double Sphere::intersect(Ray& ray) {
       }
    }
 }
+
+class Camera {
+   public:
+      Vector3 eye, up, right, lookAt;
+      static Camera parse(deque<string> tokens) {
+         Camera camera;
+
+         unsigned int tokensLeft = 17; // expected num of tokens in camera
+
+         assert(tokens.size() >= tokensLeft);
+         string token = tokens.front();
+         assert(token.compare("camera") == 0);
+         tokens.pop_front();
+         tokensLeft--;
+
+         for(; tokensLeft > 0; tokens.pop_back(), tokensLeft--) {
+            token = tokens.front();
+            //TODO finish this
+         }
+         
+         return camera;
+      }
+};
