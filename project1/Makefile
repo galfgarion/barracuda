@@ -6,3 +6,6 @@ testv3:
 
 clean:
 	rm -f a.out *.ppm *.tga test raytracer
+
+handin:
+	handin zwood csc473p1 *.h *.cpp README Makefile *.vcproj *.sln
