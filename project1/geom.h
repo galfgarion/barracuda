@@ -1,29 +1,45 @@
+#include <deque>
+#include <iostream>
+#include <assert.h>
+#include <sstream>
 #include "vector3.h"
+#include "parser.h"
+#include "color.h"
+
+#ifndef _GEOM_H
+#define _GEOM_H
+
+using namespace std;
 
 typedef struct s_ray {
    Vector3 direction;
    Vector3 origin; 
 } Ray;
 
+
+
+
 class GeomObject {
    public:
       virtual double intersect(Ray&) = 0; // pure virtual fn
+      Color color;
 };
 
 class Sphere: public GeomObject {
    public:
       Sphere(Vector3& center, double radius);
+      Sphere(deque<string> & tokens);
       double intersect(Ray& ray);
 
    private:
       Vector3 _center;
       double _radius;
-
 };
 
 class Plane: public GeomObject {
    public:
       Plane(Vector3& normal, double d);
+      Plane(deque<string> & tokens);
       double intersect(Ray& ray);
 
    private:
@@ -34,6 +50,24 @@ class Plane: public GeomObject {
 Plane::Plane(Vector3& normal, double d) {
    _normal = normal;
    _d = d;
+}
+
+Plane::Plane(deque<string> & tokens) {
+   assert(!tokens.front().compare("plane"));
+   tokens.pop_front();
+
+   _normal = Parser::parse_vector(tokens);
+   _d = Parser::parse_double(tokens.front());
+   tokens.pop_front();
+
+   cout << "parsed plane with normal " << _normal.c_str() << " and d " << _d << endl;
+   
+   while(!tokens.empty()) {
+      if(!tokens.front().compare("pigment")) {
+         color = Parser::parse_color(tokens);
+      }
+      else break;  
+   }
 }
 
 double Plane::intersect(Ray& ray) {
@@ -51,6 +85,23 @@ double Plane::intersect(Ray& ray) {
 Sphere::Sphere(Vector3 &center, double radius) {
    _center = Vector3(center);
    _radius = radius;
+}
+
+Sphere::Sphere(deque<string> & tokens) {
+   assert(!tokens.front().compare("sphere"));
+   tokens.pop_front();
+   _center = Parser::parse_vector(tokens);
+   _radius = Parser::parse_double(tokens.front());
+   tokens.pop_front();
+
+   while(!tokens.empty()) {
+      if(!tokens.front().compare("pigment")) {
+         this->color = Parser::parse_color(tokens);
+      } else {
+         break;
+      }
+   }
+   cout << "parsed sphere with center " << _center.c_str() << " and radius " << _radius << endl;
 }
 
 // returns closest non-negative intersection, or -1 if a non-negative intersection does not exist
@@ -85,3 +136,54 @@ double Sphere::intersect(Ray& ray) {
       }
    }
 }
+
+
+class Camera {
+   public:
+      Camera() {}
+      Camera(Vector3& eye, Vector3& up, Vector3& right, Vector3& lookAt); 
+      Vector3 eye, up, right, lookAt;
+
+      static Camera parse(deque<string> & tokens) {
+         unsigned int tokensLeft = 17; // expected num of tokens in camera
+
+         Vector3 eye, up, right, lookAt;
+
+         assert(tokens.size() >= tokensLeft);
+         string token = tokens.front();
+         assert(token.compare("camera") == 0);
+         tokens.pop_front();
+
+         for(;;) {
+            token = tokens.front();
+            tokens.pop_front();
+            if(token.compare("location") == 0) {
+               eye = Parser::parse_vector(tokens);
+               cout << "set camera \"location\" (eye) to " << eye.c_str() << endl;
+            } else if(token.compare("up") == 0) {
+               up = Parser::parse_vector(tokens);
+               cout << "set camera \"up\" to " << up.c_str() << endl;
+            } else if(token.compare("right") == 0) {
+               right = Parser::parse_vector(tokens);
+               cout << "set camera \"right\" to " << right.c_str() << endl;
+            } else if(token.compare("look_at") == 0) {
+               lookAt = Parser::parse_vector(tokens);
+               cout << "set camera \"look_at\" to " << eye.c_str() << endl;
+            } else {
+               tokens.push_front(token); //return the unused token
+               break;
+            }
+         }
+
+         return Camera(eye, up, right, lookAt);
+      }
+};
+
+Camera::Camera(Vector3 &eye, Vector3 &up, Vector3 &right, Vector3 &lookAt) {
+   this->eye = eye;
+   this->up = up;
+   this ->right = right;
+   this->lookAt = lookAt;
+}
+
+#endif

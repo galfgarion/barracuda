@@ -3,6 +3,9 @@
 #include <stdlib.h>
 #include <math.h>
 #include <limits>
+#include <string>
+
+using namespace std;
 //very simple data structure to store 3d points
 class Vector3
 {
@@ -24,7 +27,15 @@ class Vector3
    Vector3 * multiply(double k);
    double dot(Vector3 *const & other);
    const char * c_str();
+   string & toString();
 
 };
+
+/*
+   ostream& operator<<(ostream& out, const Vector3& v) {
+      out << "<" << v.x << ", " << v.y << ", " << v.z << ">";
+      return out;
+   }
+   */
 
 #endif

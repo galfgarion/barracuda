@@ -1,0 +1,3 @@
+Removed hard coded elements.  Now all information comes from the parser.
+
+The parser only pulls out basic geometry and color as of now.

@@ -7,8 +7,10 @@
 #include <string>
 #include <string.h>
 #include <vector>
+#include <deque>
 #include <iostream>
 #include <limits>
+#include <fstream>
 
 #include "vector3.h"
 #include "screen.h"
@@ -16,11 +18,6 @@
 
 using namespace std;
 
-typedef unsigned char byte;
-
-typedef struct color_t {
-   byte r, g, b;
-} Color;
 
 typedef struct image_t {
 } Image;
@@ -32,7 +29,8 @@ string gInputFileName ("");
 
 int parse_int(const char *arg);
 void parse_args(int argc, const char **argv);
-void draw_image(vector< vector<Color> > image); 
+void draw_image(vector< vector<Color> > image);
+void parse_file(vector<GeomObject*> & objects, Camera * camera);
 
 int main(int argc, char **argv) {
 
@@ -48,14 +46,6 @@ int main(int argc, char **argv) {
    printf("Height: %d\n", gPixelHeight);
    printf("Input file: %s\n", gInputFileName.c_str());
 
-   Vector3 cameraLocation = Vector3(0, 0, 14);
-   Vector3 right = Vector3(1.3333, 0, 0);
-   Vector3 up = Vector3(0, 1, 0);
-   Vector3 lookAt = Vector3(0, 0, 0);
-   Screen screen = Screen(gPixelWidth, gPixelHeight, cameraLocation, -right.magnitude() / 2.0,
-      right.magnitude() / 2.0, up.magnitude() / 2.0, -up.magnitude() / 2.0);
-   //Screen screen = Screen(gPixelWidth, gPixelHeight, cameraLocation, -1.3333 / 2.0, 1.3333 / 2.0, 1 / 2.0, -1 / 2.0);
-
    /* allocate the image */
    vector< vector<Color> > image(gPixelWidth, vector<Color>(gPixelHeight));
    
@@ -68,39 +58,14 @@ int main(int argc, char **argv) {
       }
    }
 
-   Vector3 center = Vector3(0,0,0);
-   Sphere sphere = Sphere(center, 2.0);
-
-   Vector3 normal = Vector3(0, 1, 0);
-   Plane plane = Plane(normal, -4);
-
-   Ray zaxis;
-   zaxis.origin = Vector3(0, 0, 14);
-   zaxis.direction = Vector3(0, 0, -1);
-
-   Ray misser;
-   misser.origin = Vector3(-4, 0, 14);
-   misser.direction = Vector3(0, 0, -1);
-
-   double intersect = sphere.intersect(zaxis);
-   cout << "z-axis intersects sphere at: " << intersect << endl;
-
-   intersect = sphere.intersect(misser);
-   cout << "ray that should miss intersects sphere at: " << intersect << endl;
-
-   // try the top left corner
-   misser.origin = *screen.pixelToScreen(0, 0);
-   cout << "Top left corner is thought to be: " << misser.origin.c_str() << endl;
-   cout << "result is of intersect is: " << sphere.intersect(misser) << endl;
-
-   zaxis.origin = *screen.pixelToScreen(gPixelWidth/2, gPixelHeight/2);
-   cout << "Center of screen is thought to be: " << zaxis.origin.c_str() << endl;
-   cout << "result is of intersect is: " << sphere.intersect(zaxis) << endl;
 
    vector<GeomObject*> objects;
+   Camera camera;
+   
+   parse_file(objects, &camera);
 
-   objects.push_back(&sphere);
-   objects.push_back(&plane);
+   Screen screen = Screen(gPixelWidth, gPixelHeight, camera.eye, -camera.right.magnitude() / 2.0,
+      camera.right.magnitude() / 2.0, camera.up.magnitude() / 2.0, -camera.up.magnitude() / 2.0);
 
    /* clear the colors */
    for(int x = 0; x < gPixelWidth; x++) {
@@ -111,25 +76,18 @@ int main(int argc, char **argv) {
          ray.origin = *screen.pixelToScreen(x, y);
 
          //cout << "ray.origin: <" << ray.origin.x << "," << ray.origin.y << "," << ray.origin.z << ">" << endl;
-         ray.direction = *ray.origin.subtract(&cameraLocation);
+         ray.direction = *ray.origin.subtract(&(camera.eye));
 
-         for(int i=0; i < objects.size(); i++) {
+         double distance = 0;
+
+         for(unsigned int i=0; i < objects.size(); i++) {
             distance = objects[i]->intersect(ray);
-         }
-
-         double distance = sphere.intersect(ray);
-
-         if(distance > 0 && distance < closest) {
-            closest = distance;
-            image[x][y].r = 255;
-         }
-
-         distance = plane.intersect(ray);
-         if(distance > 0 && distance < closest) {
-            closest = distance;
-            image[x][y].r = 0;
-            image[x][y].g = 255;
-            image[x][y].b = 0;
+            if(distance > 0 && distance < closest) {
+               closest = distance;
+               image[x][y].r = objects[i]->color.r;
+               image[x][y].g = objects[i]->color.g;
+               image[x][y].b = objects[i]->color.b;
+            }
          }
       }
    }
@@ -137,6 +95,55 @@ int main(int argc, char **argv) {
    draw_image(image);
    
    return 0;
+}
+
+void parse_file(vector<GeomObject*> & objects, Camera * camera) {
+   string delimiters = " \n\t<>,{}";
+    deque<string> tokens;
+    
+   
+    ifstream file(gInputFileName.c_str());
+    string str;
+
+    while(!file.eof()) {
+       getline(file, str);
+       // Skip delimiters at beginning.
+       string::size_type lastPos = str.find_first_not_of(delimiters, 0);
+       // Find first "non-delimiter".
+       string::size_type pos     = str.find_first_of(delimiters, lastPos);
+
+       while (string::npos != pos || string::npos != lastPos)
+       {
+           // handle comments
+          if(pos - lastPos > 1 && strncmp(str.substr(lastPos, 2).c_str(), "//", 2) == 0) {
+             break;
+          }
+           // Found a token, add it to the vector.
+           tokens.push_back(str.substr(lastPos, pos - lastPos));
+           // Skip delimiters.  Note the "not_of"
+           lastPos = str.find_first_not_of(delimiters, pos);
+           // Find next "non-delimiter"
+           pos = str.find_first_of(delimiters, lastPos);
+       }
+    }
+   
+   while( tokens.size() > 0) {
+      if(!tokens.front().compare("camera")) {
+         cout << "parsing camera" << endl;
+         *camera = Camera::parse(tokens);
+      }
+      else if(!tokens.front().compare("sphere")) {
+         cout << "parsing sphere" << endl;
+         objects.push_back(new Sphere(tokens));
+      } else if(!tokens.front().compare("plane")) {
+         cout << "parsing plane" << endl;
+         objects.push_back(new Plane(tokens));
+      }
+       cout << tokens.front();
+       cout << endl;
+       tokens.pop_front(); 
+   }
+
 }
 
 void draw_image(vector< vector<Color> > image) {
@@ -169,9 +176,16 @@ void draw_image(vector< vector<Color> > image) {
    /* write pixel info */
    for(int y = 0; y < gPixelHeight; y++) {
       for(int x = 0; x < gPixelWidth; x++) {
+         // irfanview in windows seems to want gbr ordering
+#ifdef _WIN32
+         fputc(image[x][y].g, outputFile);
+         fputc(image[x][y].b, outputFile);
+         fputc(image[x][y].r, outputFile);
+#else
          fputc(image[x][y].r, outputFile);
          fputc(image[x][y].g, outputFile);
          fputc(image[x][y].b, outputFile);
+#endif
       }
       //fputs("\n", outputFile);
    }
