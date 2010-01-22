@@ -32,7 +32,8 @@ class Parser {
          tokens.pop_front(); // pigment
          tokens.pop_front(); // color
          tokens.pop_front(); // rgb
-         Vector3 &vector = parse_vector(tokens);
+         //Vector3 &vector = parse_vector(tokens); //g++ doesn't like this but VS thinks it's ok
+         Vector3 vector = parse_vector(tokens); //g++ doesn't like this but VS thinks it's ok
          Color color;
          color.r = (byte) (255 * vector.x);
          color.g = (byte) (255 * vector.y);

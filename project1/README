@@ -1,1 +1,3 @@
-The parser isn't finished so some stuff is hard coded.  Other than that it's done.
+Removed hard coded elements.  Now all information comes from the parser.
+
+The parser only pulls out basic geometry and color as of now.
