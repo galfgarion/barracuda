@@ -35,7 +35,7 @@ double Screen::pixelToScreenX(int x) {
    if(_pixelWidth == 1) {
       return _right + screenWidth / 2.0;
    }
-   return _left + screenWidth * x / (_pixelWidth - 1);
+   return _left + screenWidth * (x + 0.5) / (_pixelWidth - 1);
 }
 
 double Screen::pixelToScreenY(int y) {
@@ -45,6 +45,6 @@ double Screen::pixelToScreenY(int y) {
       return _bottom + screenHeight;
    }
 
-   return _top - screenHeight * y / (_pixelHeight - 1);
+   return _top - screenHeight * (y + 0.5) / (_pixelHeight);
 }
 #endif // _SCREEN_H
