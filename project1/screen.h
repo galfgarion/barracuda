@@ -45,6 +45,6 @@ double Screen::pixelToScreenY(int y) {
       return _bottom + screenHeight;
    }
 
-   return _bottom + screenHeight * y / (_pixelHeight - 1);
+   return _top - screenHeight * y / (_pixelHeight - 1);
 }
 #endif // _SCREEN_H

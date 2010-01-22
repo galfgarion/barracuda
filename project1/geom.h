@@ -71,7 +71,7 @@ Plane::Plane(deque<string> & tokens) {
 }
 
 double Plane::intersect(Ray& ray) {
-   Vector3 p1 = *_normal.multiply(-_d);
+   Vector3 p1 = *_normal.multiply(_d);
    double denom = ray.direction.dot(&_normal);
 
    if(denom == 0) {
