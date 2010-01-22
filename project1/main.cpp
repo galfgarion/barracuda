@@ -46,16 +46,6 @@ int main(int argc, char **argv) {
    printf("Height: %d\n", gPixelHeight);
    printf("Input file: %s\n", gInputFileName.c_str());
 
-   
-
-   Vector3 cameraLocation = Vector3(0, 0, 14);
-   Vector3 right = Vector3(1.3333, 0, 0);
-   Vector3 up = Vector3(0, 1, 0);
-   Vector3 lookAt = Vector3(0, 0, 0);
-   Screen screen = Screen(gPixelWidth, gPixelHeight, cameraLocation, -right.magnitude() / 2.0,
-      right.magnitude() / 2.0, up.magnitude() / 2.0, -up.magnitude() / 2.0);
-   //Screen screen = Screen(gPixelWidth, gPixelHeight, cameraLocation, -1.3333 / 2.0, 1.3333 / 2.0, 1 / 2.0, -1 / 2.0);
-
    /* allocate the image */
    vector< vector<Color> > image(gPixelWidth, vector<Color>(gPixelHeight));
    
@@ -68,11 +58,14 @@ int main(int argc, char **argv) {
       }
    }
 
-  
+
    vector<GeomObject*> objects;
-   Camera * camera = NULL;
+   Camera camera;
    
-   parse_file(objects, camera);
+   parse_file(objects, &camera);
+
+   Screen screen = Screen(gPixelWidth, gPixelHeight, camera.eye, -camera.right.magnitude() / 2.0,
+      camera.right.magnitude() / 2.0, camera.up.magnitude() / 2.0, -camera.up.magnitude() / 2.0);
 
    /* clear the colors */
    for(int x = 0; x < gPixelWidth; x++) {
@@ -83,7 +76,7 @@ int main(int argc, char **argv) {
          ray.origin = *screen.pixelToScreen(x, y);
 
          //cout << "ray.origin: <" << ray.origin.x << "," << ray.origin.y << "," << ray.origin.z << ">" << endl;
-         ray.direction = *ray.origin.subtract(&cameraLocation);
+         ray.direction = *ray.origin.subtract(&(camera.eye));
 
          double distance = 0;
 
@@ -137,7 +130,7 @@ void parse_file(vector<GeomObject*> & objects, Camera * camera) {
    while( tokens.size() > 0) {
       if(!tokens.front().compare("camera")) {
          cout << "parsing camera" << endl;
-         camera = Camera::parse(tokens);
+         *camera = Camera::parse(tokens);
       }
       else if(!tokens.front().compare("sphere")) {
          cout << "parsing sphere" << endl;

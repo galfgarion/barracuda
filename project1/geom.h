@@ -140,10 +140,11 @@ double Sphere::intersect(Ray& ray) {
 
 class Camera {
    public:
+      Camera() {}
       Camera(Vector3& eye, Vector3& up, Vector3& right, Vector3& lookAt); 
       Vector3 eye, up, right, lookAt;
 
-      static Camera * parse(deque<string> & tokens) {
+      static Camera parse(deque<string> & tokens) {
          unsigned int tokensLeft = 17; // expected num of tokens in camera
 
          Vector3 eye, up, right, lookAt;
@@ -174,7 +175,7 @@ class Camera {
             }
          }
 
-         return new Camera(eye, up, right, lookAt);
+         return Camera(eye, up, right, lookAt);
       }
 };
 
