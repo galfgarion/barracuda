@@ -68,26 +68,9 @@ int main(int argc, char **argv) {
       }
    }
 
-   Vector3 center = Vector3(0,0,0);
-   Sphere sphere = Sphere(center, 2.0);
-
-   Vector3 normal = Vector3(0, 1, 0);
-   Plane plane = Plane(normal, -4);
-
+  
    vector<GeomObject*> objects;
    Camera * camera = NULL;
-
-
-   sphere.color.r = 0;
-   sphere.color.g = 0;
-   sphere.color.b = 255;
-   
-   plane.color.r = 255;
-   plane.color.g = 0;
-   plane.color.b = 0;
-
-   //objects.push_back(&sphere);
-   objects.push_back(&plane);
    
    parse_file(objects, camera);
 
@@ -159,6 +142,9 @@ void parse_file(vector<GeomObject*> & objects, Camera * camera) {
       else if(!tokens.front().compare("sphere")) {
          cout << "parsing sphere" << endl;
          objects.push_back(new Sphere(tokens));
+      } else if(!tokens.front().compare("plane")) {
+         cout << "parsing plane" << endl;
+         objects.push_back(new Plane(tokens));
       }
        cout << tokens.front();
        cout << endl;

@@ -39,6 +39,7 @@ class Sphere: public GeomObject {
 class Plane: public GeomObject {
    public:
       Plane(Vector3& normal, double d);
+      Plane(deque<string> & tokens);
       double intersect(Ray& ray);
 
    private:
@@ -49,6 +50,24 @@ class Plane: public GeomObject {
 Plane::Plane(Vector3& normal, double d) {
    _normal = normal;
    _d = d;
+}
+
+Plane::Plane(deque<string> & tokens) {
+   assert(!tokens.front().compare("plane"));
+   tokens.pop_front();
+
+   _normal = Parser::parse_vector(tokens);
+   _d = Parser::parse_double(tokens.front());
+   tokens.pop_front();
+
+   cout << "parsed plane with normal " << _normal.c_str() << " and d " << _d << endl;
+   
+   while(!tokens.empty()) {
+      if(!tokens.front().compare("pigment")) {
+         color = Parser::parse_color(tokens);
+      }
+      else break;  
+   }
 }
 
 double Plane::intersect(Ray& ray) {
