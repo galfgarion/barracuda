@@ -30,7 +30,7 @@ string gInputFileName ("");
 int parse_int(const char *arg);
 void parse_args(int argc, const char **argv);
 void draw_image(vector< vector<Color> > image);
-void parse_file();
+void parse_file(vector<GeomObject*> & objects, Camera * camera);
 
 int main(int argc, char **argv) {
 
@@ -45,6 +45,8 @@ int main(int argc, char **argv) {
    printf("Width: %d\n", gPixelWidth);
    printf("Height: %d\n", gPixelHeight);
    printf("Input file: %s\n", gInputFileName.c_str());
+
+   
 
    Vector3 cameraLocation = Vector3(0, 0, 14);
    Vector3 right = Vector3(1.3333, 0, 0);
@@ -72,12 +74,9 @@ int main(int argc, char **argv) {
    Vector3 normal = Vector3(0, 1, 0);
    Plane plane = Plane(normal, -4);
 
-
-
-
    vector<GeomObject*> objects;
+   Camera * camera = NULL;
 
-   parse_file();
 
    sphere.color.r = 0;
    sphere.color.g = 0;
@@ -87,8 +86,10 @@ int main(int argc, char **argv) {
    plane.color.g = 0;
    plane.color.b = 0;
 
-   objects.push_back(&sphere);
+   //objects.push_back(&sphere);
    objects.push_back(&plane);
+   
+   parse_file(objects, camera);
 
    /* clear the colors */
    for(int x = 0; x < gPixelWidth; x++) {
@@ -120,7 +121,7 @@ int main(int argc, char **argv) {
    return 0;
 }
 
-void parse_file() {
+void parse_file(vector<GeomObject*> & objects, Camera * camera) {
    string delimiters = " \n\t<>,{}";
     deque<string> tokens;
     
@@ -151,6 +152,14 @@ void parse_file() {
     }
    
    while( tokens.size() > 0) {
+      if(!tokens.front().compare("camera")) {
+         cout << "parsing camera" << endl;
+         camera = Camera::parse(tokens);
+      }
+      else if(!tokens.front().compare("sphere")) {
+         cout << "parsing sphere" << endl;
+         objects.push_back(new Sphere(tokens));
+      }
        cout << tokens.front();
        cout << endl;
        tokens.pop_front(); 
