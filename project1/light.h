@@ -8,21 +8,19 @@
 using namespace std;
 
 class Light {
-   private:
-      Point _location;
-      Color _color;
-
    public:
+      Point location;
+      Color color;
       Light(const Point & location, const Color & color) {
-         this->_location = Point(location);
-         this->_color = color;
+         this->location = Point(location);
+         this->color = color;
       }
       Light(deque<string> & tokens) {
          assert(!tokens.front().compare("light_source"));
          tokens.pop_front(); // light_source
 
-         _location = Parser::parse_vector(tokens);
-         _color = Parser::parse_color(tokens);
+         location = Parser::parse_vector(tokens);
+         color = Parser::parse_color(tokens);
       }
 };
 

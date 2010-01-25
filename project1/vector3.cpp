@@ -92,15 +92,15 @@
       return Vector3(a.x - b.x, a.y - b.y, a.z - b.z);
    }
 
-   inline double operator*(const Vector3& a, const Vector3& b) {
+   double operator*(const Vector3& a, const Vector3& b) {
       return (a.x * b.x) + (a.y * b.y) + (a.z * b.z);
    }
 
-   inline Vector3 operator*(const Vector3& a, double b) {
+   Vector3 operator*(const Vector3& a, double b) {
       return(Vector3(a.x * b, a.y * b, a.z * b));
    }
 
-   inline Vector3 operator*(const double b, const Vector3& a) {
+   Vector3 operator*(const double b, const Vector3& a) {
       return a * b;
    }
    

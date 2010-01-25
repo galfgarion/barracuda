@@ -44,6 +44,17 @@ class Parser {
          Color color = Color(v.x, v.y, v.z);
          cout << "parsed color: " 
               << "<" << color.r << ", " << color.g << ", " <<  color.b << ">" << endl;
+
+         double maxval = max(color.r, color.g);
+         maxval = max(maxval, color.b);
+         if(maxval > 1.0) {
+            double scaleFactor = 1.0 / maxval;
+            color.r *= scaleFactor;
+            color.g *= scaleFactor;
+            color.b *= scaleFactor;
+            cout << "scaled color to: " 
+                 << "<" << color.r << ", " << color.g << ", " <<  color.b << ">" << endl;
+         }
          return color;
       }
 

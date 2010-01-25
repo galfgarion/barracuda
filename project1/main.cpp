@@ -11,6 +11,7 @@
 #include <iostream>
 #include <limits>
 #include <fstream>
+#include <math.h>
 
 #include "vector3.h"
 #include "screen.h"
@@ -59,7 +60,6 @@ int main(int argc, char **argv) {
       }
    }
 
-
    vector<GeomObject*> objects;
    vector<Light*> lights;
    Camera camera;
@@ -87,11 +87,20 @@ int main(int argc, char **argv) {
             Point p = ray.origin + (ray.direction.normalize() * distance); // point on object
             Vector3 n = objects[i]->surfaceNormal(p); // surface normal
 
+
+            Color ambient = objects[i]->color * objects[i]->finish.ambient;
+
+            Vector3 L = (lights[0]->location - p).normalize();
+            double nDotL = max(0.0, n * L);
+            Color diffuse = objects[i]->color * nDotL * objects[i]->finish.diffuse; 
+
+            Color total_color = ambient + diffuse;
+
             if(distance > 0 && distance < closest) {
                closest = distance;
-               image[x][y].r = (byte) (objects[i]->color.r * 255);
-               image[x][y].g = (byte) (objects[i]->color.g * 255);
-               image[x][y].b = (byte) (objects[i]->color.b * 255);
+               image[x][y].r = (byte) (total_color.r * 255);
+               image[x][y].g = (byte) (total_color.g * 255);
+               image[x][y].b = (byte) (total_color.b * 255);
             }
          }
       }
