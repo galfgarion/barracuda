@@ -18,19 +18,23 @@ class Vector3
    Vector3() {}
 
    Vector3 * add(Vector3 *other);
-   Vector3 * cross(Vector3 *other);
+   Vector3 cross(const Vector3 & other);
    bool equals(Vector3 *other);
    Vector3 * inverse();
    Vector3 * subtract(Vector3 * const & other);
-   Vector3 * normalize();
+   Vector3 normalize();
    double magnitude();
    Vector3 * multiply(double k);
    double dot(Vector3 *const & other);
    const char * c_str();
-   string & toString();
 
 };
 
+extern Vector3 operator+(const Vector3& a, const Vector3& b);
+extern Vector3 operator-(const Vector3& a, const Vector3& b);
+extern double operator*(const Vector3& a, const Vector3& b);
+extern Vector3 operator*(const Vector3& a, double b);
+extern Vector3 operator*(const double b, const Vector3& a);
 /*
    ostream& operator<<(ostream& out, const Vector3& v) {
       out << "<" << v.x << ", " << v.y << ", " << v.z << ">";

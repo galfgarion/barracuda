@@ -35,11 +35,11 @@ class Parser {
          //Vector3 &vector = parse_vector(tokens); //g++ doesn't like this but VS thinks it's ok
          Vector3 vector = parse_vector(tokens); //g++ doesn't like this but VS thinks it's ok
          Color color;
-         color.r = (byte) (255 * vector.x);
-         color.g = (byte) (255 * vector.y);
-         color.b = (byte) (255 * vector.z);
-         cout << "parsed color: " << vector.c_str() << " converted to <" 
-              << (int) color.r << ", " << (int) color.g << ", " << (int) color.b << ">" << endl;
+         color.r = vector.x;
+         color.g = vector.y;
+         color.b = vector.z;
+         cout << "parsed color: " 
+              << color.r << ", " << color.g << ", " <<  color.b << ">" << endl;
          return color;
       }
 

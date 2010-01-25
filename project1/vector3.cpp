@@ -13,14 +13,13 @@
       return sum;
    }
 
-   Vector3 * Vector3::cross(Vector3 *other)
+   Vector3 Vector3::cross(const Vector3 & other)
    {
-      Vector3 a;
-      a.x = (y * other->z - z * other->y);
-      a.y = (z * other->x - x * other->z);
-      a.z = (x * other->y - y * other->x);
+      double x1 = (y * other.z - z * other.y);
+      double y1 = (z * other.x - x * other.z);
+      double z1 = (x * other.y - y * other.x);
 
-      return new Vector3(a);
+      return Vector3(x1, y1, z1);
    }
 
    bool Vector3::equals(Vector3 *other)
@@ -43,16 +42,16 @@
       return diff;
    }
    
-   Vector3 * Vector3::normalize()
+   Vector3 Vector3::normalize()
    {
       double magn = this->magnitude();
 
       if(magn == 0.0)
-         return new Vector3(*this);
+         return Vector3(*this);
 
       double inv_mag = 1.0f / magn;
 
-      return this->multiply(inv_mag);
+      return *this * inv_mag;
    }
 
    double Vector3::magnitude()
@@ -83,5 +82,25 @@
       return cstr;
    }
 
+   // For the following overloaded operator functions, see Stroustrup p. 231
 
+   Vector3 operator+(const Vector3& a, const Vector3& b) {
+      return Vector3(a.x + b.x, a.y + b.y, a.z + b.z);
+   }
+   
+   Vector3 operator-(const Vector3& a, const Vector3& b) {
+      return Vector3(a.x - b.x, a.y - b.y, a.z - b.z);
+   }
 
+   inline double operator*(const Vector3& a, const Vector3& b) {
+      return (a.x * b.x) + (a.y * b.y) + (a.z * b.z);
+   }
+
+   inline Vector3 operator*(const Vector3& a, double b) {
+      return(Vector3(a.x * b, a.y * b, a.z * b));
+   }
+
+   inline Vector3 operator*(const double b, const Vector3& a) {
+      return a * b;
+   }
+   

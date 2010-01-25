@@ -29,7 +29,7 @@ string gInputFileName ("");
 
 int parse_int(const char *arg);
 void parse_args(int argc, const char **argv);
-void draw_image(vector< vector<Color> > image);
+void draw_image(vector< vector<ByteColor> > image);
 void parse_file(vector<GeomObject*> & objects, Camera * camera);
 
 int main(int argc, char **argv) {
@@ -47,7 +47,7 @@ int main(int argc, char **argv) {
    printf("Input file: %s\n", gInputFileName.c_str());
 
    /* allocate the image */
-   vector< vector<Color> > image(gPixelWidth, vector<Color>(gPixelHeight));
+   vector< vector<ByteColor> > image(gPixelWidth, vector<ByteColor>(gPixelHeight));
    
    /* clear the colors */
    for(int x = 0; x < gPixelWidth; x++) {
@@ -82,11 +82,14 @@ int main(int argc, char **argv) {
 
          for(unsigned int i=0; i < objects.size(); i++) {
             distance = objects[i]->intersect(ray);
+            Point p = ray.origin + (ray.direction.normalize() * distance); // point on object
+            Vector3 n = objects[i]->surfaceNormal(p); // surface normal
+
             if(distance > 0 && distance < closest) {
                closest = distance;
-               image[x][y].r = objects[i]->color.r;
-               image[x][y].g = objects[i]->color.g;
-               image[x][y].b = objects[i]->color.b;
+               image[x][y].r = (byte) (objects[i]->color.r * 255);
+               image[x][y].g = (byte) (objects[i]->color.g * 255);
+               image[x][y].b = (byte) (objects[i]->color.b * 255);
             }
          }
       }
@@ -146,7 +149,7 @@ void parse_file(vector<GeomObject*> & objects, Camera * camera) {
 
 }
 
-void draw_image(vector< vector<Color> > image) {
+void draw_image(vector< vector<ByteColor> > image) {
    /* determine the output file name */
    string outputFileName (gInputFileName);
 

@@ -11,6 +11,8 @@
 
 using namespace std;
 
+typedef Vector3 Point;
+
 typedef struct s_ray {
    Vector3 direction;
    Vector3 origin; 
@@ -22,7 +24,10 @@ typedef struct s_ray {
 class GeomObject {
    public:
       virtual double intersect(Ray&) = 0; // pure virtual fn
+      virtual Vector3 surfaceNormal(const Point & p) = 0;
       Color color;
+      double specular;
+      double diffuse;
 };
 
 class Sphere: public GeomObject {
@@ -30,6 +35,7 @@ class Sphere: public GeomObject {
       Sphere(Vector3& center, double radius);
       Sphere(deque<string> & tokens);
       double intersect(Ray& ray);
+      Vector3 surfaceNormal(const Point & p);
 
    private:
       Vector3 _center;
@@ -41,11 +47,16 @@ class Plane: public GeomObject {
       Plane(Vector3& normal, double d);
       Plane(deque<string> & tokens);
       double intersect(Ray& ray);
+      Vector3 surfaceNormal(const Point &p);
 
    private:
       Vector3 _normal;
       double _d;
 };
+
+Vector3 Plane::surfaceNormal(const Point &p) {
+   return Vector3(this->_normal).normalize();
+}
 
 Plane::Plane(Vector3& normal, double d) {
    _normal = normal;
@@ -102,6 +113,10 @@ Sphere::Sphere(deque<string> & tokens) {
       }
    }
    cout << "parsed sphere with center " << _center.c_str() << " and radius " << _radius << endl;
+}
+
+Vector3 Sphere::surfaceNormal(const Point & p) {
+   return (p - this->_center).normalize();
 }
 
 // returns closest non-negative intersection, or -1 if a non-negative intersection does not exist
