@@ -14,6 +14,7 @@ class Vector3
    double x;
    double y;
    double z;
+
    Vector3(double in_x, double in_y, double in_z) : x(in_x), y(in_y), z(in_z) {}
    Vector3() {}
 

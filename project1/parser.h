@@ -13,6 +13,13 @@ class Parser {
          assert(ss);
          return x;
       }
+      static double parse_double(deque<string> & tokens) {
+         assert(!tokens.empty());
+         string s = tokens.front();
+         double d = parse_double(s);
+         tokens.pop_front();
+         return d;
+      }
       static Vector3 parse_vector(deque<string> & tokens) {
          double x, y, z;
          stringstream ss;
@@ -29,17 +36,14 @@ class Parser {
          return Vector3(x, y, z);
       }
       static Color parse_color(deque<string> & tokens) {
-         tokens.pop_front(); // pigment
+         //tokens.pop_front(); // pigment
          tokens.pop_front(); // color
          tokens.pop_front(); // rgb
          //Vector3 &vector = parse_vector(tokens); //g++ doesn't like this but VS thinks it's ok
-         Vector3 vector = parse_vector(tokens); //g++ doesn't like this but VS thinks it's ok
-         Color color;
-         color.r = vector.x;
-         color.g = vector.y;
-         color.b = vector.z;
+         Vector3 v = parse_vector(tokens);
+         Color color = Color(v.x, v.y, v.z);
          cout << "parsed color: " 
-              << color.r << ", " << color.g << ", " <<  color.b << ">" << endl;
+              << "<" << color.r << ", " << color.g << ", " <<  color.b << ">" << endl;
          return color;
       }
 

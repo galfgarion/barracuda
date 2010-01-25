@@ -15,6 +15,7 @@
 #include "vector3.h"
 #include "screen.h"
 #include "geom.h"
+#include "light.h"
 
 using namespace std;
 
@@ -30,7 +31,7 @@ string gInputFileName ("");
 int parse_int(const char *arg);
 void parse_args(int argc, const char **argv);
 void draw_image(vector< vector<ByteColor> > image);
-void parse_file(vector<GeomObject*> & objects, Camera * camera);
+void parse_file(vector<GeomObject*> & objects, vector<Light*> & lights, Camera * camera);
 
 int main(int argc, char **argv) {
 
@@ -60,9 +61,10 @@ int main(int argc, char **argv) {
 
 
    vector<GeomObject*> objects;
+   vector<Light*> lights;
    Camera camera;
    
-   parse_file(objects, &camera);
+   parse_file(objects, lights, &camera);
 
    Screen screen = Screen(gPixelWidth, gPixelHeight, camera.eye, -camera.right.magnitude() / 2.0,
       camera.right.magnitude() / 2.0, camera.up.magnitude() / 2.0, -camera.up.magnitude() / 2.0);
@@ -100,7 +102,7 @@ int main(int argc, char **argv) {
    return 0;
 }
 
-void parse_file(vector<GeomObject*> & objects, Camera * camera) {
+void parse_file(vector<GeomObject*> & objects, vector<Light*> & lights, Camera * camera) {
    string delimiters = " \n\t<>,{}";
     deque<string> tokens;
     
@@ -141,10 +143,14 @@ void parse_file(vector<GeomObject*> & objects, Camera * camera) {
       } else if(!tokens.front().compare("plane")) {
          cout << "parsing plane" << endl;
          objects.push_back(new Plane(tokens));
+      } else if(!tokens.front().compare("light_source")) {
+         cout << "parsing light source" << endl;
+         lights.push_back(new Light(tokens));
+      } else {
+         cout << tokens.front();
+         cout << endl;
+         tokens.pop_front(); 
       }
-       cout << tokens.front();
-       cout << endl;
-       tokens.pop_front(); 
    }
 
 }

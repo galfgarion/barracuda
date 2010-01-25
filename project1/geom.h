@@ -18,14 +18,43 @@ typedef struct s_ray {
    Vector3 origin; 
 } Ray;
 
+typedef struct finish_t {
+   double ambient, diffuse, specular;
+} Finish;
 
+Finish parse_finish (deque<string> & tokens) {
+   Finish finish;
+   assert(!tokens.front().compare("finish"));
 
+   cout << "parsing finish" << endl;
+
+   tokens.pop_front(); // finish
+
+   while(!tokens.empty()) {
+      if(!tokens.front().compare("ambient")) {
+         tokens.pop_front();
+         finish.ambient = Parser::parse_double(tokens);
+         cout << "ambient = " << finish.ambient << endl;
+      } else if(!tokens.front().compare("diffuse")) {
+         tokens.pop_front();
+         finish.diffuse = Parser::parse_double(tokens);
+         cout << "diffuse = " << finish.diffuse << endl;
+      } else if(!tokens.front().compare("specular")) {
+         tokens.pop_front();
+         finish.specular = Parser::parse_double(tokens);
+         cout << "specular = " << finish.specular << endl;
+      } else break;
+   }
+
+   return finish;
+}
 
 class GeomObject {
    public:
       virtual double intersect(Ray&) = 0; // pure virtual fn
       virtual Vector3 surfaceNormal(const Point & p) = 0;
       Color color;
+      Finish finish;
       double specular;
       double diffuse;
 };
@@ -75,9 +104,11 @@ Plane::Plane(deque<string> & tokens) {
    
    while(!tokens.empty()) {
       if(!tokens.front().compare("pigment")) {
+         tokens.pop_front(); // pigment
          color = Parser::parse_color(tokens);
-      }
-      else break;  
+      } else if (!tokens.front().compare("finish")){
+         this->finish = parse_finish(tokens);
+      } else break;  
    }
 }
 
@@ -107,10 +138,11 @@ Sphere::Sphere(deque<string> & tokens) {
 
    while(!tokens.empty()) {
       if(!tokens.front().compare("pigment")) {
+         tokens.pop_front(); // pigment
          this->color = Parser::parse_color(tokens);
-      } else {
-         break;
-      }
+      } else if(!tokens.front().compare("finish")) {
+         this->finish = parse_finish(tokens);
+      } else break;
    }
    cout << "parsed sphere with center " << _center.c_str() << " and radius " << _radius << endl;
 }
