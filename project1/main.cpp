@@ -89,12 +89,30 @@ int main(int argc, char **argv) {
 
 
             Color ambient = objects[i]->color * objects[i]->finish.ambient;
+            Color total_color = ambient;
 
-            Vector3 L = (lights[0]->location - p).normalize();
-            double nDotL = max(0.0, n * L);
-            Color diffuse = objects[i]->color * nDotL * objects[i]->finish.diffuse; 
 
-            Color total_color = ambient + diffuse;
+            for(unsigned int l=0; l < lights.size(); l++) {
+               bool inShadow = false;
+               // check shadows
+               for(unsigned int j=0; j < objects.size(); j++) {
+                  Ray shadowFeeler;
+                  shadowFeeler.origin = p;
+                  shadowFeeler.direction = lights[l]->location - p;
+                  double feelerDistance = objects[j]->intersect(shadowFeeler);
+                  if(feelerDistance > 0.0001) {
+                     inShadow = true;
+                  }
+                   
+               }
+
+               if(!inShadow) {
+                  Vector3 L = (lights[l]->location - p).normalize();
+                  double nDotL = max(0.0, n * L);
+                  Color diffuse = objects[i]->color * nDotL * objects[i]->finish.diffuse; 
+                  total_color = total_color + diffuse;
+               }
+            }
 
             if(distance > 0 && distance < closest) {
                closest = distance;
