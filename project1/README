@@ -1,3 +1,13 @@
-Removed hard coded elements.  Now all information comes from the parser.
+Diffuse shading and shadows work, but specular shading is not yet implemented.
 
-The parser only pulls out basic geometry and color as of now.
+The program handles multiple light sources and any number of spheres or planes,
+but no other geometry.
+
+The program outputs "standard" PPMs with magic number P6.
+This format uses binary RGB values.
+
+It draw differently on Windows vs. Linux.  Linux expects rgb byte ordering, 
+while Windows expects gbr.  Very curious indeed. The program will output
+the expected byte ordering for the system on which it is run/compiled.
+
+The submitted PPM was generated on vogon, so it has rgb byte ordering.

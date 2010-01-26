@@ -107,10 +107,15 @@ int main(int argc, char **argv) {
                }
 
                if(!inShadow) {
+                  // diffuse
                   Vector3 L = (lights[l]->location - p).normalize();
                   double nDotL = max(0.0, n * L);
                   Color diffuse = objects[i]->color * nDotL * objects[i]->finish.diffuse; 
                   total_color = total_color + diffuse;
+
+                  //specular
+                  //Vector3 V = (camera.position - p).normalize;
+                  //Vector3 h = (L + V).normalize();
                }
             }
 
