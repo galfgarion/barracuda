@@ -31,7 +31,7 @@ string gInputFileName ("");
 
 int parse_int(const char *arg);
 void parse_args(int argc, const char **argv);
-void draw_image(vector< vector<ByteColor> > image);
+void draw_image(vector< vector<Color> > image);
 void parse_file(vector<GeomObject*> & objects, vector<Light*> & lights, Camera * camera);
 
 int main(int argc, char **argv) {
@@ -49,7 +49,7 @@ int main(int argc, char **argv) {
    printf("Input file: %s\n", gInputFileName.c_str());
 
    /* allocate the image */
-   vector< vector<ByteColor> > image(gPixelWidth, vector<ByteColor>(gPixelHeight));
+   vector< vector<Color> > image(gPixelWidth, vector<Color>(gPixelHeight));
    
    /* clear the colors */
    for(int x = 0; x < gPixelWidth; x++) {
@@ -114,16 +114,19 @@ int main(int argc, char **argv) {
                   total_color = total_color + diffuse;
 
                   //specular
-                  //Vector3 V = (camera.position - p).normalize;
-                  //Vector3 h = (L + V).normalize();
+                  Vector3 V = (camera.eye - p).normalize();
+                  Vector3 h = (L + V).normalize();
+
+                  Color specular = objects[i]->color * pow((L * h), 0.5);
+                  total_color = total_color + specular;
                }
             }
 
             if(distance > 0 && distance < closest) {
                closest = distance;
-               image[x][y].r = (byte) (total_color.r * 255);
-               image[x][y].g = (byte) (total_color.g * 255);
-               image[x][y].b = (byte) (total_color.b * 255);
+               image[x][y].r = total_color.r;
+               image[x][y].g = total_color.g;
+               image[x][y].b = total_color.b;
             }
          }
       }
@@ -187,7 +190,7 @@ void parse_file(vector<GeomObject*> & objects, vector<Light*> & lights, Camera *
 
 }
 
-void draw_image(vector< vector<ByteColor> > image) {
+void draw_image(vector< vector<Color> > image) {
    /* determine the output file name */
    string outputFileName (gInputFileName);
 
@@ -217,15 +220,22 @@ void draw_image(vector< vector<ByteColor> > image) {
    /* write pixel info */
    for(int y = 0; y < gPixelHeight; y++) {
       for(int x = 0; x < gPixelWidth; x++) {
-         // irfanview in windows seems to want gbr ordering
+
+         Color pixel = image[x][y];
+         //scale to fit byte
+         pixel.r = pixel.r * 255;
+         pixel.g = pixel.g * 255;
+         pixel.b = pixel.b * 255;
+
+// irfanview in windows seems to want gbr ordering
 #ifdef _WIN32
-         fputc(image[x][y].g, outputFile);
-         fputc(image[x][y].b, outputFile);
-         fputc(image[x][y].r, outputFile);
+         fputc((byte) pixel.g, outputFile);
+         fputc((byte) pixel.b, outputFile);
+         fputc((byte) pixel.r, outputFile);
 #else
-         fputc(image[x][y].r, outputFile);
-         fputc(image[x][y].g, outputFile);
-         fputc(image[x][y].b, outputFile);
+         fputc((byte) pixel.r, outputFile);
+         fputc((byte) pixel.g, outputFile);
+         fputc((byte) pixel.b, outputFile);
 #endif
       }
       //fputs("\n", outputFile);

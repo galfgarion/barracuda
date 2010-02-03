@@ -55,8 +55,6 @@ class GeomObject {
       virtual Vector3 surfaceNormal(const Point & p) = 0;
       Color color;
       Finish finish;
-      double specular;
-      double diffuse;
 };
 
 class Sphere: public GeomObject {
@@ -93,6 +91,12 @@ Plane::Plane(Vector3& normal, double d) {
 }
 
 Plane::Plane(deque<string> & tokens) {
+
+   // there has to be a better way to do initialization
+   finish.specular = 0.0;
+   finish.diffuse = 0.0;
+   finish.ambient = 0.0;
+
    assert(!tokens.front().compare("plane"));
    tokens.pop_front();
 
@@ -130,6 +134,8 @@ Sphere::Sphere(Vector3 &center, double radius) {
 }
 
 Sphere::Sphere(deque<string> & tokens) {
+   finish.specular = finish.diffuse = finish.ambient = 0.0;
+
    assert(!tokens.front().compare("sphere"));
    tokens.pop_front();
    _center = Parser::parse_vector(tokens);
