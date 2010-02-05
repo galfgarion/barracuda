@@ -116,7 +116,9 @@ int main(int argc, char **argv) {
                   Vector3 V = (camera.eye - p).normalize();
                   Vector3 h = (L + V).normalize();
 
-                  Color specular = Color(1, 1, 1) * 0.5 * pow((n * h), 1 / 0.05);
+                  double specFactor = objects[i]->finish.specular;
+                  double roughness = objects[i]->finish.roughness;
+                  Color specular = lights[l]->color * specFactor * pow((n * h), 1 / roughness);
                   total_color = total_color + specular;
                }
             }

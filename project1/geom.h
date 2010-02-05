@@ -19,7 +19,7 @@ typedef struct s_ray {
 } Ray;
 
 typedef struct finish_t {
-   double ambient, diffuse, specular;
+   double ambient, diffuse, specular, roughness;
 } Finish;
 
 Finish parse_finish (deque<string> & tokens) {
@@ -43,6 +43,10 @@ Finish parse_finish (deque<string> & tokens) {
          tokens.pop_front();
          finish.specular = Parser::parse_double(tokens);
          cout << "specular = " << finish.specular << endl;
+      } else if(!tokens.front().compare("roughness")) {
+         tokens.pop_front();
+         finish.roughness = Parser::parse_double(tokens);
+         cout << "roughness = " << finish.roughness << endl;
       } else break;
    }
 
