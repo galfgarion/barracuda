@@ -20,7 +20,6 @@
 
 using namespace std;
 
-
 typedef struct image_t {
 } Image;
 
@@ -117,7 +116,7 @@ int main(int argc, char **argv) {
                   Vector3 V = (camera.eye - p).normalize();
                   Vector3 h = (L + V).normalize();
 
-                  Color specular = objects[i]->color * pow((L * h), 0.5);
+                  Color specular = Color(1, 1, 1) * 0.5 * pow((n * h), 1 / 0.05);
                   total_color = total_color + specular;
                }
             }
@@ -200,6 +199,27 @@ void draw_image(vector< vector<Color> > image) {
       outputFileName.replace(pos, 4, ".ppm");
    } else {
       outputFileName = outputFileName + ".ppm";
+   }
+
+   double maxValue = 0.0;
+   // TODO calc the max value
+   for(int y=0; y < gPixelHeight; y++) {
+      for(int x=0; x < gPixelWidth; x++) {
+         Color pixel = image[x][y];
+         if(pixel.r > maxValue) maxValue = pixel.r;
+         if(pixel.g > maxValue) maxValue = pixel.g;
+         if(pixel.b > maxValue) maxValue = pixel.b;
+      }
+   }
+
+   // TODO scale by the max value if it is greater than 1
+   if(maxValue > 1.0) {
+      double scaleFactor = 1.0 / maxValue;
+      for(int y=0; y < gPixelHeight; y++) {
+         for(int x=0; x < gPixelWidth; x++) {
+            image[x][y] = image[x][y] * scaleFactor;
+         }
+      }
    }
 
    cout << "Output filename: " << outputFileName << endl;
