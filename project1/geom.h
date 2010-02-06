@@ -215,9 +215,6 @@ Triangle::Triangle(deque<string> & tokens) {
          this->finish = parse_finish(tokens);
       } else break;  
    }
-
-   //DEBUG
-   color = Color(1, 1,1);
 }
 
 Plane::Plane(deque<string> & tokens) {
