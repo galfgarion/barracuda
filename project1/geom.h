@@ -167,7 +167,7 @@ double Triangle::intersect(const Ray & ray) {
    Vector3 hitRay = ray.direction.normalize();
    hitRay = hitRay * t;
    double distance = hitRay.magnitude();
-   cout << "triangle hit at distance: " << distance << endl;
+   if(DEBUG) cout << "triangle hit at distance: " << distance << endl;
    return hitRay.magnitude();
 }
 
