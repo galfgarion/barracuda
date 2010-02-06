@@ -80,14 +80,24 @@ int main(int argc, char **argv) {
          ray.direction = *ray.origin.subtract(&(camera.eye));
 
          double distance = 0;
+         GeomObject * closestObj = NULL;
 
          for(unsigned int i=0; i < objects.size(); i++) {
             distance = objects[i]->intersect(ray);
+
+            if(distance > 0 && distance < closest) {
+               closest = distance;
+               closestObj = objects[i];
+            }
+         }
+
+         if(closestObj != NULL) {
+            distance = closestObj->intersect(ray);
             Point p = ray.origin + (ray.direction.normalize() * distance); // point on object
-            Vector3 n = objects[i]->surfaceNormal(p); // surface normal
+            Vector3 n = closestObj->surfaceNormal(p); // surface normal
 
 
-            Color ambient = objects[i]->color * objects[i]->finish.ambient;
+            Color ambient = closestObj->color * closestObj->finish.ambient;
             Color total_color = ambient;
 
 
@@ -109,26 +119,23 @@ int main(int argc, char **argv) {
                   // diffuse
                   Vector3 L = (lights[l]->location - p).normalize();
                   double nDotL = max(0.0, n * L);
-                  Color diffuse = objects[i]->color * nDotL * objects[i]->finish.diffuse; 
+                  Color diffuse = closestObj->color * nDotL * closestObj->finish.diffuse; 
                   total_color = total_color + diffuse;
 
                   //specular
                   Vector3 V = (camera.eye - p).normalize();
                   Vector3 h = (L + V).normalize();
 
-                  double specFactor = objects[i]->finish.specular;
-                  double roughness = objects[i]->finish.roughness;
+                  double specFactor = closestObj->finish.specular;
+                  double roughness = closestObj->finish.roughness;
                   Color specular = lights[l]->color * specFactor * pow((n * h), 1 / roughness);
                   total_color = total_color + specular;
                }
             }
 
-            if(distance > 0 && distance < closest) {
-               closest = distance;
-               image[x][y].r = total_color.r;
-               image[x][y].g = total_color.g;
-               image[x][y].b = total_color.b;
-            }
+            image[x][y].r = total_color.r;
+            image[x][y].g = total_color.g;
+            image[x][y].b = total_color.b;
          }
       }
    }
@@ -182,6 +189,9 @@ void parse_file(vector<GeomObject*> & objects, vector<Light*> & lights, Camera *
       } else if(!tokens.front().compare("light_source")) {
          cout << "parsing light source" << endl;
          lights.push_back(new Light(tokens));
+      } else if(!tokens.front().compare("triangle")) {
+         cout << "parsing triangle" << endl;
+         objects.push_back(new Triangle(tokens));
       } else {
          cout << tokens.front();
          cout << endl;

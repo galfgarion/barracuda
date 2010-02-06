@@ -9,6 +9,8 @@
 #ifndef _GEOM_H
 #define _GEOM_H
 
+#define DEBUG false
+
 using namespace std;
 
 typedef Vector3 Point;
@@ -55,7 +57,7 @@ Finish parse_finish (deque<string> & tokens) {
 
 class GeomObject {
    public:
-      virtual double intersect(Ray&) = 0; // pure virtual fn
+      virtual double intersect(const Ray&) = 0; // pure virtual fn
       virtual Vector3 surfaceNormal(const Point & p) = 0;
       Color color;
       Finish finish;
@@ -65,7 +67,7 @@ class Sphere: public GeomObject {
    public:
       Sphere(Vector3& center, double radius);
       Sphere(deque<string> & tokens);
-      double intersect(Ray& ray);
+      double intersect(const Ray & ray);
       Vector3 surfaceNormal(const Point & p);
 
    private:
@@ -77,13 +79,87 @@ class Plane: public GeomObject {
    public:
       Plane(Vector3& normal, double d);
       Plane(deque<string> & tokens);
-      double intersect(Ray& ray);
+      double intersect(const Ray & ray);
       Vector3 surfaceNormal(const Point &p);
 
    private:
       Vector3 _normal;
       double _d;
 };
+
+class Triangle: public GeomObject {
+   Point v1, v2, v3;
+   Color color;
+   public:
+   
+   Triangle() {} 
+
+   Triangle(deque<string> & tokens);
+   Vector3 surfaceNormal(const Point &p);
+   double intersect(const Ray & ray);
+
+};
+
+Vector3 Triangle::surfaceNormal(const Point &p) {
+   return v2.cross(v1);
+}
+
+double Triangle::intersect(const Ray & ray) {
+   // TODO
+   double a, b, c, d, e, f, g, h, i, j, k, l;
+
+   a = v1.x - v2.x;
+   b = v1.y - v2.y;
+   c = v1.z - v2.z;
+
+   d = v1.x - v3.x;
+   e = v1.y - v3.y;
+   f = v1.z - v3.z;
+
+   g = ray.direction.x;
+   h = ray.direction.y;
+   i = ray.direction.z;
+
+   j = v1.x - ray.origin.x;
+   k = v1.y - ray.origin.y;
+   l = v1.z - ray.origin.z;
+
+   double ei_minus_hf = e*i - h*f;
+   double gf_minus_di = g*f - d*i;
+   double dh_minus_eg = d*h - e*g;
+   double ak_minus_jb = a*k - j*b;
+   double jc_minus_al = j*c - a*l;
+   double bl_minus_kc = b*l - k*c;
+
+   double M = a * ei_minus_hf + b * gf_minus_di + c * dh_minus_eg;
+
+   double t = -(f * ak_minus_jb + e * jc_minus_al + d * bl_minus_kc) / M;
+
+   // TODO we could do an additional shortcut if we restrict the time interval
+   if(t < 0) {
+      //if(DEBUG) cout << "missed triangle due to t" << endl;
+      return -1;
+   }
+
+   double gamma = (i * ak_minus_jb + h * jc_minus_al + g * bl_minus_kc) / M;
+
+   if(gamma < 0 || gamma > 1) {
+      //if(DEBUG) cout << "missed triangle due to gamma" << endl;
+      return -1;
+   }
+
+   double beta = (j * ei_minus_hf + k * gf_minus_di + l * dh_minus_eg) / M;
+
+   if(beta < 0 || beta > 1 - gamma) {
+      //if(DEBUG) cout << "missed triangle due to beta" << endl;
+      return -1;
+   }
+
+   cout << "hit triangle at t=" << t << endl;
+
+   return t;
+
+}
 
 Vector3 Plane::surfaceNormal(const Point &p) {
    return Vector3(this->_normal).normalize();
@@ -92,6 +168,33 @@ Vector3 Plane::surfaceNormal(const Point &p) {
 Plane::Plane(Vector3& normal, double d) {
    _normal = normal;
    _d = d;
+}
+
+Triangle::Triangle(deque<string> & tokens) {
+   // there has to be a better way to do initialization
+   finish.specular = 0.0;
+   finish.diffuse = 0.0;
+   finish.ambient = 0.0;
+
+   assert(!tokens.front().compare("triangle"));
+   tokens.pop_front();
+
+   v1 = Parser::parse_vector(tokens);
+   v2 = Parser::parse_vector(tokens);
+   v3 = Parser::parse_vector(tokens);
+
+   cout << "parsed triangle with vertices " << v1.c_str() << ", "
+        << v2.c_str() << ", " << v3.c_str() << endl;
+
+   while(!tokens.empty()) {
+      if(!tokens.front().compare("pigment")) {
+         tokens.pop_front(); // pigment
+         color = Parser::parse_color(tokens);
+      } else if (!tokens.front().compare("finish")){
+         this->finish = parse_finish(tokens);
+      } else break;  
+   }
+
 }
 
 Plane::Plane(deque<string> & tokens) {
@@ -120,15 +223,15 @@ Plane::Plane(deque<string> & tokens) {
    }
 }
 
-double Plane::intersect(Ray& ray) {
+double Plane::intersect(const Ray & ray) {
    Vector3 p1 = *_normal.multiply(_d);
-   double denom = ray.direction.dot(&_normal);
+   double denom = ray.direction * _normal;
 
    if(denom == 0) {
       return -1.0;
    }
 
-   double numerator = p1.subtract(&ray.origin)->dot(&_normal);
+   double numerator = (p1 - ray.origin) * _normal;
    return numerator / denom;
 }
 
@@ -162,12 +265,12 @@ Vector3 Sphere::surfaceNormal(const Point & p) {
 }
 
 // returns closest non-negative intersection, or -1 if a non-negative intersection does not exist
-double Sphere::intersect(Ray& ray) {
+double Sphere::intersect(const Ray & ray) {
    
-   Vector3 * centerToOrigin = ray.origin.subtract(&_center);
-   double A = ray.direction.dot(&ray.direction);
-   double B = 2 * ray.direction.dot(centerToOrigin);
-   double C = centerToOrigin->dot(centerToOrigin) - _radius*_radius;
+   Vector3 centerToOrigin = ray.origin - _center;
+   double A = ray.direction * ray.direction;
+   double B = 2 * (ray.direction * centerToOrigin);
+   double C = centerToOrigin * centerToOrigin - _radius * _radius;
 
    double discriminant = B * B - 4 * A * C;
 
