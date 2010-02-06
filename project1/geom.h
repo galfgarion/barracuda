@@ -100,7 +100,9 @@ class Triangle: public GeomObject {
 };
 
 Vector3 Triangle::surfaceNormal(const Point &p) {
-   return v2.cross(v1);
+   Vector3 s1 = v2 - v1;
+   Vector3 s2 = v3 - v1;
+   return s2.cross(s1);
 }
 
 double Triangle::intersect(const Ray & ray) {
@@ -190,6 +192,17 @@ Triangle::Triangle(deque<string> & tokens) {
    v3 = Parser::parse_vector(tokens);
    v2 = Parser::parse_vector(tokens);
    v1 = Parser::parse_vector(tokens);
+
+   //Vector3 s1 = v2 - v1;
+   //Vector3 s2 = v3 - v1;
+
+   /*
+   if(s1 * s2 < 0) {
+      Vector3 tmp = v1;
+      v1 = v2;
+      v2 = tmp;
+   }
+   */
 
    cout << "parsed triangle with vertices " << v1.c_str() << ", "
         << v2.c_str() << ", " << v3.c_str() << endl;
