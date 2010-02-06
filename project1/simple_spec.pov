@@ -14,9 +14,9 @@ finish {ambient 0.2 diffuse 0.4 specular 0.5 roughness 0.05}
 translate <0, 0, 0>
 }
 triangle {
-     <-3, 3 ,0 >,
      <-6, 0, 0 >,
-     <-0, 0 ,0 >
+     <-0, 0 ,0 >,
+     <-3, 3 ,0 >
      pigment {color rgb <0.65, 0.4, 0.4>}
      finish {ambient 0.3 diffuse 0.4 specular 0.5}
 }

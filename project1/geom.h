@@ -100,7 +100,7 @@ class Triangle: public GeomObject {
 };
 
 Vector3 Triangle::surfaceNormal(const Point &p) {
-   return v1.cross(v2);
+   return v2.cross(v1);
 }
 
 double Triangle::intersect(const Ray & ray) {
@@ -132,7 +132,7 @@ double Triangle::intersect(const Ray & ray) {
 
    double M = a * ei_minus_hf + b * gf_minus_di + c * dh_minus_eg;
 
-   if(M <= 0) {
+   if(M == 0) {
       return -1;
    }
 
