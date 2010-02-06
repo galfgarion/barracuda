@@ -22,6 +22,8 @@ typedef struct s_ray {
 
 typedef struct finish_t {
    double ambient, diffuse, specular, roughness;
+   double ior;
+   bool reflection, refraction;
 } Finish;
 
 Finish parse_finish (deque<string> & tokens) {
@@ -49,6 +51,28 @@ Finish parse_finish (deque<string> & tokens) {
          tokens.pop_front();
          finish.roughness = Parser::parse_double(tokens);
          cout << "roughness = " << finish.roughness << endl;
+      } else if(!tokens.front().compare("ior")) {
+         tokens.pop_front();
+         finish.ior = Parser::parse_double(tokens);
+         cout << "ior = " << finish.roughness << endl;
+      } else if(!tokens.front().compare("reflection")) {
+         tokens.pop_front();
+         double tmp = Parser::parse_double(tokens);
+         if(tmp == 0) {
+            finish.reflection = false;
+         } else {
+            finish.reflection = true;
+         }
+         cout << "reflection = " << finish.roughness << endl;
+      } else if(!tokens.front().compare("refraction")) {
+         tokens.pop_front();
+         double tmp = Parser::parse_double(tokens);
+         if(tmp == 0) {
+            finish.refraction = false;
+         } else {
+            finish.refraction = true;
+         }
+         cout << "refraction = " << finish.roughness << endl;
       } else break;
    }
 

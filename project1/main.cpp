@@ -24,8 +24,8 @@ typedef struct image_t {
 } Image;
 
 // globals
-int gPixelWidth = -1;
-int gPixelHeight = -1;
+int gPixelWidth = 128;
+int gPixelHeight = 96;
 string gInputFileName ("");
 
 int parse_int(const char *arg);
@@ -123,6 +123,9 @@ int main(int argc, char **argv) {
                   //specular
                   Vector3 V = (camera.eye - p).normalize();
                   Vector3 h = (L + V).normalize();
+
+                  Vector3 d = ray.direction.normalize();
+                  Vector3 r = 2 * (d * n) * n;
 
                   double specFactor = closestObj->finish.specular;
                   double roughness = closestObj->finish.roughness;
