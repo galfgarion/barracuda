@@ -57,10 +57,22 @@ Finish parse_finish (deque<string> & tokens) {
 
 class GeomObject {
    public:
-      virtual double intersect(const Ray&) = 0; // pure virtual fn
-      virtual Vector3 surfaceNormal(const Point & p) = 0;
       Color color;
       Finish finish;
+
+      virtual double intersect(const Ray&) = 0; // pure virtual fn
+      virtual Vector3 surfaceNormal(const Point & p) = 0;
+
+      virtual void parseOptions(deque<string> & tokens) {
+        while(!tokens.empty()) {
+            if(!tokens.front().compare("pigment")) {
+               tokens.pop_front(); // pigment
+               color = Parser::parse_color(tokens);
+            } else if (!tokens.front().compare("finish")){
+               this->finish = parse_finish(tokens);
+            } else break;  
+         }
+      }
 };
 
 class Sphere: public GeomObject {
@@ -207,14 +219,7 @@ Triangle::Triangle(deque<string> & tokens) {
    cout << "parsed triangle with vertices " << v1.c_str() << ", "
         << v2.c_str() << ", " << v3.c_str() << endl;
 
-   while(!tokens.empty()) {
-      if(!tokens.front().compare("pigment")) {
-         tokens.pop_front(); // pigment
-         color = Parser::parse_color(tokens);
-      } else if (!tokens.front().compare("finish")){
-         this->finish = parse_finish(tokens);
-      } else break;  
-   }
+   parseOptions(tokens);
 }
 
 Plane::Plane(deque<string> & tokens) {
@@ -233,15 +238,7 @@ Plane::Plane(deque<string> & tokens) {
 
    cout << "parsed plane with normal " << _normal.c_str() << " and d " << _d << endl;
    
-   while(!tokens.empty()) {
-      if(!tokens.front().compare("pigment")) {
-         tokens.pop_front(); // pigment
-         color = Parser::parse_color(tokens);
-      } else if (!tokens.front().compare("finish")){
-         this->finish = parse_finish(tokens);
-      } else break;  
-   }
-
+   parseOptions(tokens);
 }
 
 double Plane::intersect(const Ray & ray) {
@@ -270,14 +267,8 @@ Sphere::Sphere(deque<string> & tokens) {
    _radius = Parser::parse_double(tokens.front());
    tokens.pop_front();
 
-   while(!tokens.empty()) {
-      if(!tokens.front().compare("pigment")) {
-         tokens.pop_front(); // pigment
-         this->color = Parser::parse_color(tokens);
-      } else if(!tokens.front().compare("finish")) {
-         this->finish = parse_finish(tokens);
-      } else break;
-   }
+   parseOptions(tokens);
+
    cout << "parsed sphere with center " << _center.c_str() << " and radius " << _radius << endl;
 }
 
