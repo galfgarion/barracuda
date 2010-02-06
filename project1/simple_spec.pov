@@ -13,7 +13,13 @@ pigment { color rgb <1.0, 0.0, 1.0>}
 finish {ambient 0.2 diffuse 0.4 specular 0.5 roughness 0.05}
 translate <0, 0, 0>
 }
-
+triangle {
+     <-3, 3 ,0 >,
+     <-6, 0, 0 >,
+     <-0, 0 ,0 >
+     pigment {color rgb <0.65, 0.4, 0.4>}
+     finish {ambient 0.3 diffuse 0.4 specular 0.5}
+}
 plane {<0, 1, 0>, -4
 pigment {color rgb <0.2, 0.2, 0.8>}
 finish {ambient 0.4 diffuse 0.8}

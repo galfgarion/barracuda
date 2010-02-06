@@ -96,10 +96,8 @@ int main(int argc, char **argv) {
             Point p = ray.origin + (ray.direction.normalize() * distance); // point on object
             Vector3 n = closestObj->surfaceNormal(p); // surface normal
 
-
             Color ambient = closestObj->color * closestObj->finish.ambient;
             Color total_color = ambient;
-
 
             for(unsigned int l=0; l < lights.size(); l++) {
                bool inShadow = false;
@@ -136,6 +134,7 @@ int main(int argc, char **argv) {
             image[x][y].r = total_color.r;
             image[x][y].g = total_color.g;
             image[x][y].b = total_color.b;
+
          }
       }
    }

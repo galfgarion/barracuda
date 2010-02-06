@@ -89,7 +89,6 @@ class Plane: public GeomObject {
 
 class Triangle: public GeomObject {
    Point v1, v2, v3;
-   Color color;
    public:
    
    Triangle() {} 
@@ -101,7 +100,7 @@ class Triangle: public GeomObject {
 };
 
 Vector3 Triangle::surfaceNormal(const Point &p) {
-   return v2.cross(v1);
+   return v1.cross(v2);
 }
 
 double Triangle::intersect(const Ray & ray) {
@@ -133,6 +132,10 @@ double Triangle::intersect(const Ray & ray) {
 
    double M = a * ei_minus_hf + b * gf_minus_di + c * dh_minus_eg;
 
+   if(M <= 0) {
+      return -1;
+   }
+
    double t = -(f * ak_minus_jb + e * jc_minus_al + d * bl_minus_kc) / M;
 
    // TODO we could do an additional shortcut if we restrict the time interval
@@ -155,10 +158,15 @@ double Triangle::intersect(const Ray & ray) {
       return -1;
    }
 
-   cout << "hit triangle at t=" << t << endl;
+   //cout << "hit triangle at t=" << t << endl;
 
-   return t;
+   //return -1;
 
+   Vector3 hitRay = ray.direction.normalize();
+   hitRay = hitRay * t;
+   double distance = hitRay.magnitude();
+   cout << "triangle hit at distance: " << distance << endl;
+   return hitRay.magnitude();
 }
 
 Vector3 Plane::surfaceNormal(const Point &p) {
@@ -179,9 +187,9 @@ Triangle::Triangle(deque<string> & tokens) {
    assert(!tokens.front().compare("triangle"));
    tokens.pop_front();
 
-   v1 = Parser::parse_vector(tokens);
-   v2 = Parser::parse_vector(tokens);
    v3 = Parser::parse_vector(tokens);
+   v2 = Parser::parse_vector(tokens);
+   v1 = Parser::parse_vector(tokens);
 
    cout << "parsed triangle with vertices " << v1.c_str() << ", "
         << v2.c_str() << ", " << v3.c_str() << endl;
@@ -195,6 +203,8 @@ Triangle::Triangle(deque<string> & tokens) {
       } else break;  
    }
 
+   //DEBUG
+   color = Color(1, 1,1);
 }
 
 Plane::Plane(deque<string> & tokens) {
@@ -221,6 +231,7 @@ Plane::Plane(deque<string> & tokens) {
          this->finish = parse_finish(tokens);
       } else break;  
    }
+
 }
 
 double Plane::intersect(const Ray & ray) {

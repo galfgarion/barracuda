@@ -42,7 +42,7 @@
       return diff;
    }
    
-   Vector3 Vector3::normalize()
+   Vector3 Vector3::normalize() const
    {
       double magn = this->magnitude();
 
@@ -54,7 +54,7 @@
       return *this * inv_mag;
    }
 
-   double Vector3::magnitude()
+   double Vector3::magnitude() const
    {
       return sqrt(x*x + y*y + z*z);
    }

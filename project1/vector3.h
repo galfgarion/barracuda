@@ -23,8 +23,8 @@ class Vector3
    bool equals(Vector3 *other);
    Vector3 * inverse();
    Vector3 * subtract(Vector3 * const & other);
-   Vector3 normalize();
-   double magnitude();
+   Vector3 normalize() const;
+   double magnitude() const;
    Vector3 * multiply(double k);
    double dot(Vector3 *const & other);
    const char * c_str();
