@@ -102,7 +102,7 @@ class Triangle: public GeomObject {
 Vector3 Triangle::surfaceNormal(const Point &p) {
    Vector3 s1 = v2 - v1;
    Vector3 s2 = v3 - v1;
-   return s2.cross(s1);
+   return s1.cross(s2).normalize();
 }
 
 double Triangle::intersect(const Ray & ray) {
@@ -189,9 +189,9 @@ Triangle::Triangle(deque<string> & tokens) {
    assert(!tokens.front().compare("triangle"));
    tokens.pop_front();
 
-   v3 = Parser::parse_vector(tokens);
-   v2 = Parser::parse_vector(tokens);
    v1 = Parser::parse_vector(tokens);
+   v2 = Parser::parse_vector(tokens);
+   v3 = Parser::parse_vector(tokens);
 
    //Vector3 s1 = v2 - v1;
    //Vector3 s2 = v3 - v1;
