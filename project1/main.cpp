@@ -32,6 +32,7 @@ int parse_int(const char *arg);
 void parse_args(int argc, const char **argv);
 void draw_image(vector< vector<Color> > image);
 void parse_file(vector<GeomObject*> & objects, vector<Light*> & lights, Camera * camera);
+Color raycast(const Ray & ray, const vector<GeomObject*>& objects, const vector<Light*>& lights);
 
 int main(int argc, char **argv) {
 
@@ -71,7 +72,6 @@ int main(int argc, char **argv) {
    /* clear the colors */
    for(int x = 0; x < gPixelWidth; x++) {
       for(int y = 0; y < gPixelHeight; y++) {
-         double closest = numeric_limits<double>::max();
 
          Ray ray;
          ray.origin = *screen.pixelToScreen(x, y);
@@ -79,72 +79,77 @@ int main(int argc, char **argv) {
          //cout << "ray.origin: <" << ray.origin.x << "," << ray.origin.y << "," << ray.origin.z << ">" << endl;
          ray.direction = *ray.origin.subtract(&(camera.eye));
 
-         double distance = 0;
-         GeomObject * closestObj = NULL;
-
-         for(unsigned int i=0; i < objects.size(); i++) {
-            distance = objects[i]->intersect(ray);
-
-            if(distance > 0 && distance < closest) {
-               closest = distance;
-               closestObj = objects[i];
-            }
-         }
-
-         if(closestObj != NULL) {
-            distance = closestObj->intersect(ray);
-            Point p = ray.origin + (ray.direction.normalize() * distance); // point on object
-            Vector3 n = closestObj->surfaceNormal(p); // surface normal
-
-            Color ambient = closestObj->color * closestObj->finish.ambient;
-            Color total_color = ambient;
-
-            for(unsigned int l=0; l < lights.size(); l++) {
-               bool inShadow = false;
-               // check shadows
-               for(unsigned int j=0; j < objects.size(); j++) {
-                  Ray shadowFeeler;
-                  shadowFeeler.origin = p;
-                  shadowFeeler.direction = lights[l]->location - p;
-                  double feelerDistance = objects[j]->intersect(shadowFeeler);
-                  if(feelerDistance > 0.0001) {
-                     inShadow = true;
-                  }
-                   
-               }
-
-               if(!inShadow) {
-                  // diffuse
-                  Vector3 L = (lights[l]->location - p).normalize();
-                  double nDotL = max(0.0, n * L);
-                  Color diffuse = closestObj->color * nDotL * closestObj->finish.diffuse; 
-                  total_color = total_color + diffuse;
-
-                  //specular
-                  Vector3 V = (camera.eye - p).normalize();
-                  Vector3 h = (L + V).normalize();
-
-                  Vector3 d = ray.direction.normalize();
-                  Vector3 r = 2 * (d * n) * n;
-
-                  double specFactor = closestObj->finish.specular;
-                  double roughness = closestObj->finish.roughness;
-                  Color specular = lights[l]->color * specFactor * pow((n * h), 1 / roughness);
-                  total_color = total_color + specular;
-               }
-            }
-
-            image[x][y].r = total_color.r;
-            image[x][y].g = total_color.g;
-            image[x][y].b = total_color.b;
-
-         }
+         image[x][y] = raycast(ray, objects, lights);
       }
    }
 
    draw_image(image);
    
    return 0;
+}
+
+Color raycast(const Ray & ray, const vector<GeomObject*>& objects, const vector<Light*>& lights) {
+
+   double closest = numeric_limits<double>::max();
+   double distance = 0;
+   GeomObject * closestObj = NULL;
+
+   for(unsigned int i=0; i < objects.size(); i++) {
+      distance = objects[i]->intersect(ray);
+
+      if(distance > 0 && distance < closest) {
+         closest = distance;
+         closestObj = objects[i];
+      }
+   }
+
+   if(closestObj != NULL) {
+      distance = closestObj->intersect(ray);
+      Point p = ray.origin + (ray.direction.normalize() * distance); // point on object
+      Vector3 n = closestObj->surfaceNormal(p); // surface normal
+
+      Color ambient = closestObj->color * closestObj->finish.ambient;
+      Color total_color = ambient;
+
+      for(unsigned int l=0; l < lights.size(); l++) {
+         bool inShadow = false;
+         // check shadows
+         for(unsigned int j=0; j < objects.size(); j++) {
+            Ray shadowFeeler;
+            shadowFeeler.origin = p;
+            shadowFeeler.direction = lights[l]->location - p;
+            double feelerDistance = objects[j]->intersect(shadowFeeler);
+            if(feelerDistance > 0.0001) {
+               inShadow = true;
+            }
+             
+         }
+
+         if(!inShadow) {
+            // diffuse
+            Vector3 L = (lights[l]->location - p).normalize();
+            double nDotL = max(0.0, n * L);
+            Color diffuse = closestObj->color * nDotL * closestObj->finish.diffuse; 
+            total_color = total_color + diffuse;
+
+            //specular
+            Vector3 V = ray.direction.normalize();
+            Vector3 h = (L + V).normalize();
+
+            Vector3 d = ray.direction.normalize();
+            Vector3 r = 2 * (d * n) * n;
+
+            double specFactor = closestObj->finish.specular;
+            double roughness = closestObj->finish.roughness;
+            Color specular = lights[l]->color * specFactor * pow((n * h), 1 / roughness);
+            total_color = total_color + specular;
+         }
+      }
+      return total_color;
+   }
+
+   // no objects hit, return black
+   return Color(0, 0, 0);
 }
 
 void parse_file(vector<GeomObject*> & objects, vector<Light*> & lights, Camera * camera) {
