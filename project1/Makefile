@@ -7,6 +7,9 @@ testv3:
 clean:
 	rm -f a.out *.ppm *.tga *.png test raytracer
 
+test:
+	g++ test.cpp vector3.cpp && ./a.out
+
 handin:
 	handin zwood csc473p1p3 *.h *.cpp simple.pov simple.ppm README Makefile *.vcproj *.sln
 
