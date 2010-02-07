@@ -249,6 +249,8 @@ Plane::Plane(deque<string> & tokens) {
    finish.specular = 0.0;
    finish.diffuse = 0.0;
    finish.ambient = 0.0;
+   finish.reflection = 0.0;
+   finish.refraction = 0.0;
 
    assert(!tokens.front().compare("plane"));
    tokens.pop_front();

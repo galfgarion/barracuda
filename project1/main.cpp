@@ -18,7 +18,7 @@
 #include "geom.h"
 #include "light.h"
 
-#define RECURSION_DEPTH 2
+#define RECURSION_DEPTH 3
 
 using namespace std;
 
@@ -41,6 +41,30 @@ Color raycast(const Ray & ray, const vector<GeomObject*>& objects, const vector<
 Vector3 reflect(Vector3 d, Vector3 n) {
    return (d - (2.0 * (d*n) * n));
 }
+
+Vector3 refract(Vector3 d, Vector3 n, double iorIn, double iorOut) {
+   d = d.normalize();
+   n = n.normalize();
+   double iorRatio = iorIn / iorOut;
+
+   // HACK i did this to get the results matching lab3,
+   // but not sure if it's correct
+   /*
+   if(iorIn > iorOut) {
+      iorRatio = 1.0 / iorRatio;
+   }
+   */
+
+   double iorRatioSquared = iorRatio * iorRatio;
+
+   double underRoot = 1 - (iorRatioSquared * (1 - (d * n)*(d * n)));
+   // total internal reflection
+   if(underRoot < 0)
+      return reflect(d, n);
+
+   return iorRatio * (d - n*(d * n)) - n*sqrt(underRoot);
+}
+
 
 
 int main(int argc, char **argv) {
@@ -152,6 +176,22 @@ Color raycast(const Ray & ray, const vector<GeomObject*>& objects, const vector<
                total_color = total_color +  
                   (raycast(reflectray, objects, lights, recursionDepth - 1) *
                   closestObj->finish.reflection);
+            }
+
+            else if(closestObj->finish.refraction != 0 && recursionDepth > 0) {
+               Ray refractray;
+               refractray.origin = p;
+
+               Vector3 d = ray.direction.normalize();
+
+               if(d * n < 0) {// outside the object
+                  refractray.direction = refract(d, n, 1, closestObj->finish.ior); 
+                  return closestObj->color * closestObj->finish.ambient + raycast(refractray, objects, lights, recursionDepth - 1);
+               } else {
+                  refractray.direction = refract(d, -1 * n, closestObj->finish.ior, 1);
+                  cout << "hit ray on way out of sphere" << endl;
+                  return closestObj->color * closestObj->finish.ambient+ raycast(refractray, objects, lights, recursionDepth - 1);
+               }
             }
 
             double specFactor = closestObj->finish.specular;
