@@ -22,8 +22,7 @@ typedef struct s_ray {
 
 typedef struct finish_t {
    double ambient, diffuse, specular, roughness;
-   double ior;
-   bool reflection, refraction;
+   double ior, reflection, refraction;
 } Finish;
 
 Finish parse_finish (deque<string> & tokens) {
@@ -54,25 +53,15 @@ Finish parse_finish (deque<string> & tokens) {
       } else if(!tokens.front().compare("ior")) {
          tokens.pop_front();
          finish.ior = Parser::parse_double(tokens);
-         cout << "ior = " << finish.roughness << endl;
+         cout << "ior = " << finish.ior << endl;
       } else if(!tokens.front().compare("reflection")) {
          tokens.pop_front();
-         double tmp = Parser::parse_double(tokens);
-         if(tmp == 0) {
-            finish.reflection = false;
-         } else {
-            finish.reflection = true;
-         }
-         cout << "reflection = " << finish.roughness << endl;
+         finish.reflection = Parser::parse_double(tokens);
+         cout << "reflection = " << finish.reflection << endl;
       } else if(!tokens.front().compare("refraction")) {
          tokens.pop_front();
-         double tmp = Parser::parse_double(tokens);
-         if(tmp == 0) {
-            finish.refraction = false;
-         } else {
-            finish.refraction = true;
-         }
-         cout << "refraction = " << finish.roughness << endl;
+         finish.refraction = Parser::parse_double(tokens);
+         cout << "refraction = " << finish.refraction << endl;
       } else break;
    }
 
@@ -83,6 +72,7 @@ class GeomObject {
    public:
       Color color;
       Finish finish;
+      double filter;
 
       virtual double intersect(const Ray&) = 0; // pure virtual fn
       virtual Vector3 surfaceNormal(const Point & p) = 0;
@@ -91,7 +81,14 @@ class GeomObject {
         while(!tokens.empty()) {
             if(!tokens.front().compare("pigment")) {
                tokens.pop_front(); // pigment
+               tokens.pop_front(); // color
+               string colorType = tokens.front();
+               tokens.push_front("color");
                color = Parser::parse_color(tokens);
+               if(!colorType.compare("rgbf")) {
+                  filter = Parser::parse_double(tokens);
+                  cout << "filter = " << filter << endl;
+               }
             } else if (!tokens.front().compare("finish")){
                this->finish = parse_finish(tokens);
             } else break;  
