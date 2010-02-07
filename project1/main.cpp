@@ -18,6 +18,8 @@
 #include "geom.h"
 #include "light.h"
 
+#define RECURSION_DEPTH 2
+
 using namespace std;
 
 typedef struct image_t {
@@ -32,7 +34,14 @@ int parse_int(const char *arg);
 void parse_args(int argc, const char **argv);
 void draw_image(vector< vector<Color> > image);
 void parse_file(vector<GeomObject*> & objects, vector<Light*> & lights, Camera * camera);
-Color raycast(const Ray & ray, const vector<GeomObject*>& objects, const vector<Light*>& lights);
+Color raycast(const Ray & ray, const vector<GeomObject*>& objects, const vector<Light*>& lights, int depth);
+
+
+// incoming ray, vector n on the surface at point p where it hit
+Vector3 reflect(Vector3 d, Vector3 n) {
+   return (d - (2.0 * (d*n) * n));
+}
+
 
 int main(int argc, char **argv) {
 
@@ -79,7 +88,7 @@ int main(int argc, char **argv) {
          //cout << "ray.origin: <" << ray.origin.x << "," << ray.origin.y << "," << ray.origin.z << ">" << endl;
          ray.direction = *ray.origin.subtract(&(camera.eye));
 
-         image[x][y] = raycast(ray, objects, lights);
+         image[x][y] = raycast(ray, objects, lights, RECURSION_DEPTH);
       }
    }
 
@@ -88,7 +97,7 @@ int main(int argc, char **argv) {
    return 0;
 }
 
-Color raycast(const Ray & ray, const vector<GeomObject*>& objects, const vector<Light*>& lights) {
+Color raycast(const Ray & ray, const vector<GeomObject*>& objects, const vector<Light*>& lights, int recursionDepth) {
 
    double closest = numeric_limits<double>::max();
    double distance = 0;
@@ -136,8 +145,14 @@ Color raycast(const Ray & ray, const vector<GeomObject*>& objects, const vector<
             Vector3 V = ray.direction.normalize();
             Vector3 h = (L + V).normalize();
 
-            Vector3 d = ray.direction.normalize();
-            Vector3 r = 2 * (d * n) * n;
+            if(closestObj->finish.reflection != 0 && recursionDepth > 0) {
+               Ray reflectray;
+               reflectray.origin = p;
+               reflectray.direction = reflect(ray.direction, n);
+               total_color = total_color +  
+                  (raycast(reflectray, objects, lights, recursionDepth - 1) *
+                  closestObj->finish.reflection);
+            }
 
             double specFactor = closestObj->finish.specular;
             double roughness = closestObj->finish.roughness;

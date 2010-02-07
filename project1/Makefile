@@ -1,5 +1,5 @@
 all:
-	g++ -o raytracer main.cpp vector3.cpp && ./raytracer +W640 +H480 +Irecurse_simp.pov
+	g++ -o raytracer main.cpp vector3.cpp && ./raytracer +W640 +H480 +Isimple_reflect.pov
 
 testv3:
 	g++ -o test vector3_test.cpp vector3.cpp && ./test
