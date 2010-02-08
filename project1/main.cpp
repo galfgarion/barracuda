@@ -150,20 +150,21 @@ Color raycast(const Ray & ray, const vector<GeomObject*>& objects, const vector<
       Vector3 n = closestObj->surfaceNormal(p); // surface normal
 
       Color ambient = closestObj->color * closestObj->finish.ambient;
-      Color total_color = ambient;
+      Color localShading = ambient;
 
       for(unsigned int l=0; l < lights.size(); l++) {
          bool inShadow = false;
          // check shadows
-         for(unsigned int j=0; j < objects.size(); j++) {
-            Ray shadowFeeler;
-            shadowFeeler.origin = p;
-            shadowFeeler.direction = lights[l]->location - p;
-            double feelerDistance = objects[j]->intersect(shadowFeeler);
-            if(feelerDistance > EPSILON) {
-               inShadow = true;
+         if(!shadowsOff) {
+            for(unsigned int j=0; j < objects.size(); j++) {
+               Ray shadowFeeler;
+               shadowFeeler.origin = p;
+               shadowFeeler.direction = lights[l]->location - p;
+               double feelerDistance = objects[j]->intersect(shadowFeeler);
+               if(feelerDistance > EPSILON) {
+                  inShadow = true;
+               }
             }
-             
          }
 
          if(shadowsOff || !inShadow) {
@@ -171,47 +172,31 @@ Color raycast(const Ray & ray, const vector<GeomObject*>& objects, const vector<
             Vector3 L = (lights[l]->location - p).normalize();
             double nDotL = max(0.0, n * L);
             Color diffuse = closestObj->color * nDotL * closestObj->finish.diffuse; 
-            total_color = total_color + diffuse;
+            localShading = localShading + diffuse;
 
             //specular
             Vector3 V = (-1 * ray.direction).normalize();
             Vector3 h = (L + V).normalize();
 
-            if(closestObj->finish.reflection != 0 && recursionDepth > 0) {
-               Ray reflectray;
-               reflectray.origin = p;
-               reflectray.direction = reflect(ray.direction, n);
-               total_color = total_color*(1 - closestObj->finish.reflection) +  
-                  (raycast(reflectray, objects, lights, recursionDepth - 1) *
-                  closestObj->finish.reflection);
-            }
-
-            /*
-
-            else if(closestObj->finish.refraction != 0 && recursionDepth > 0) {
-               Ray refractray;
-               refractray.origin = p;
-
-               Vector3 d = ray.direction.normalize();
-
-               if(d * n < 0) {// outside the object
-                  refractray.direction = refract(d, n, 1, closestObj->finish.ior); 
-                  return closestObj->color * closestObj->finish.ambient + raycast(refractray, objects, lights, recursionDepth - 1);
-               } else {
-                  refractray.direction = refract(d, -1 * n, closestObj->finish.ior, 1);
-                  cout << "hit ray on way out of sphere" << endl;
-                  return closestObj->color * closestObj->finish.ambient+ raycast(refractray, objects, lights, recursionDepth - 1);
-               }
-            }
-            */
-
             double specFactor = closestObj->finish.specular;
             double roughness = closestObj->finish.roughness;
             Color specular = lights[l]->color * specFactor * pow((n * h), 1 / roughness);
-            total_color = total_color + specular;
+            localShading = localShading + specular;
          }
+
+         if(closestObj->finish.reflection != 0 && recursionDepth > 0) {
+            Ray reflectray;
+            reflectray.origin = p;
+            reflectray.direction = reflect(ray.direction, n);
+
+            localShading = localShading*(1 - closestObj->finish.reflection) +  
+               (raycast(reflectray, objects, lights, recursionDepth - 1) *
+               closestObj->finish.reflection);
+         }
+
       }
-      return total_color;
+
+      return localShading;
    }
 
    // no objects hit, return black
