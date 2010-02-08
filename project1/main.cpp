@@ -40,6 +40,7 @@ Color raycast(const Ray & ray, const vector<GeomObject*>& objects, const vector<
 
 
 // incoming ray, vector n on the surface at point p where it hit
+// assume d, n are normalized
 Vector3 reflect(Vector3 d, Vector3 n) {
    return (d - (2.0 * (d*n) * n));
 }
@@ -112,7 +113,7 @@ int main(int argc, char **argv) {
          ray.origin = *screen.pixelToScreen(x, y);
 
          //cout << "ray.origin: <" << ray.origin.x << "," << ray.origin.y << "," << ray.origin.z << ">" << endl;
-         ray.direction = *ray.origin.subtract(&(camera.eye));
+         ray.direction = (ray.origin - camera.eye).normalize();
 
          image[x][y] = raycast(ray, objects, lights, RECURSION_DEPTH);
       }
