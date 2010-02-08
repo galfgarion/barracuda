@@ -26,7 +26,7 @@ typedef struct s_ray {
 
 typedef struct finish_t {
    double ambient, diffuse, specular, roughness;
-   double ior, reflection, refraction;
+   double ior, reflection, refraction, filter;
 } Finish;
 
 Finish parse_finish (deque<string> & tokens) {
@@ -76,7 +76,6 @@ class GeomObject {
    public:
       Color color;
       Finish finish;
-      double filter;
 
       virtual double intersect(const Ray&) = 0; // pure virtual fn
       virtual Vector3 surfaceNormal(const Point & p) = 0;
@@ -90,8 +89,8 @@ class GeomObject {
                tokens.push_front("color");
                color = Parser::parse_color(tokens);
                if(!colorType.compare("rgbf")) {
-                  filter = Parser::parse_double(tokens);
-                  cout << "filter = " << filter << endl;
+                  finish.filter = Parser::parse_double(tokens);
+                  cout << "filter = " << finish.filter << endl;
                }
             } else if (!tokens.front().compare("finish")){
                this->finish = parse_finish(tokens);
@@ -178,7 +177,7 @@ double Triangle::intersect(const Ray & ray) {
    double t = -(f * ak_minus_jb + e * jc_minus_al + d * bl_minus_kc) / M;
 
    // TODO we could do an additional shortcut if we restrict the time interval
-   if(t < 0) {
+   if(t < EPSILON) {
       //if(DEBUG) cout << "missed triangle due to t" << endl;
       return -1;
    }
@@ -327,9 +326,9 @@ double Sphere::intersect(const Ray & ray) {
       if(t1 < EPSILON && t2 < EPSILON) {
          return -1;
       }
-      else if(t1 < 0) {
+      else if(t1 < EPSILON) {
          return t2;
-      } else if(t2 < 0) {
+      } else if(t2 < EPSILON) {
          return t1;
       } else {
          if(t1 < t2)

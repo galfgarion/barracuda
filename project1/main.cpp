@@ -50,17 +50,11 @@ Vector3 reflect(Vector3 d, Vector3 n) {
 }
 
 Vector3 refract(Vector3 d, Vector3 n, double iorIn, double iorOut) {
-   d = d.normalize();
-   n = n.normalize();
    double iorRatio = iorIn / iorOut;
 
-   // HACK i did this to get the results matching lab3,
-   // but not sure if it's correct
-   /*
-   if(iorIn > iorOut) {
+   if(d * n <= 0) { // ray inside object
       iorRatio = 1.0 / iorRatio;
    }
-   */
 
    double iorRatioSquared = iorRatio * iorRatio;
 
@@ -69,7 +63,7 @@ Vector3 refract(Vector3 d, Vector3 n, double iorIn, double iorOut) {
    if(underRoot < 0)
       return reflect(d, n);
 
-   return iorRatio * (d - n*(d * n)) - n*sqrt(underRoot);
+   return (iorRatio * (d - n*(d * n)) - n*sqrt(underRoot)).normalize();
 }
 
 
@@ -151,6 +145,8 @@ Color raycast(const Ray & ray, const vector<GeomObject*>& objects, const vector<
 
       Color ambient = closestObj->color * closestObj->finish.ambient;
       Color localShading = ambient;
+      Color reflectionShading = Color(0, 0, 0);
+      Color refractionShading = Color(0, 0, 0);
 
       for(unsigned int l=0; l < lights.size(); l++) {
          bool inShadow = false;
@@ -189,14 +185,22 @@ Color raycast(const Ray & ray, const vector<GeomObject*>& objects, const vector<
             reflectray.origin = p;
             reflectray.direction = reflect(ray.direction, n);
 
-            localShading = localShading*(1 - closestObj->finish.reflection) +  
-               (raycast(reflectray, objects, lights, recursionDepth - 1) *
-               closestObj->finish.reflection);
+            reflectionShading = raycast(reflectray, objects, lights, recursionDepth - 1);
+               
+         }
+
+         if(closestObj->finish.refraction == 1 && recursionDepth > 0) {
+            Ray refractray;
+            refractray.origin = p;
+            refractray.direction = refract(ray.direction, n, 1, closestObj->finish.ior);
+            refractionShading = raycast(refractray, objects, lights, recursionDepth - 1);
          }
 
       }
 
-      return localShading;
+      return localShading = localShading * (1 - closestObj->finish.filter - closestObj->finish.reflection)
+         + reflectionShading * closestObj->finish.reflection
+         + refractionShading;// * closestObj->finish.filter;
    }
 
    // no objects hit, return black
