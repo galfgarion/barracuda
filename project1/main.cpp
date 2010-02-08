@@ -18,7 +18,7 @@
 #include "geom.h"
 #include "light.h"
 
-#define RECURSION_DEPTH 1 
+#define RECURSION_DEPTH 3 
 
 using namespace std;
 
@@ -30,7 +30,10 @@ int gPixelWidth = 128;
 int gPixelHeight = 96;
 string gInputFileName ("");
 
-bool shadowsOff = true;
+bool shadowsOff = false;
+#ifndef EPSILON
+#define EPSILON 0.0001;
+#endif
 
 int parse_int(const char *arg);
 void parse_args(int argc, const char **argv);
@@ -42,6 +45,7 @@ Color raycast(const Ray & ray, const vector<GeomObject*>& objects, const vector<
 // incoming ray, vector n on the surface at point p where it hit
 // assume d, n are normalized
 Vector3 reflect(Vector3 d, Vector3 n) {
+   //n = n.normalize();
    return (d - (2.0 * (d*n) * n));
 }
 
@@ -114,6 +118,7 @@ int main(int argc, char **argv) {
 
          //cout << "ray.origin: <" << ray.origin.x << "," << ray.origin.y << "," << ray.origin.z << ">" << endl;
          ray.direction = (ray.origin - camera.eye).normalize();
+         //ray.direction = (ray.origin - camera.eye);
 
          image[x][y] = raycast(ray, objects, lights, RECURSION_DEPTH);
       }
@@ -141,7 +146,7 @@ Color raycast(const Ray & ray, const vector<GeomObject*>& objects, const vector<
 
    if(closestObj != NULL) {
       distance = closestObj->intersect(ray);
-      Point p = ray.origin + (ray.direction.normalize() * distance); // point on object
+      Point p = ray.origin + (ray.direction * distance); // point on object
       Vector3 n = closestObj->surfaceNormal(p); // surface normal
 
       Color ambient = closestObj->color * closestObj->finish.ambient;
@@ -155,7 +160,7 @@ Color raycast(const Ray & ray, const vector<GeomObject*>& objects, const vector<
             shadowFeeler.origin = p;
             shadowFeeler.direction = lights[l]->location - p;
             double feelerDistance = objects[j]->intersect(shadowFeeler);
-            if(feelerDistance > 0.0001) {
+            if(feelerDistance > EPSILON) {
                inShadow = true;
             }
              
@@ -169,17 +174,19 @@ Color raycast(const Ray & ray, const vector<GeomObject*>& objects, const vector<
             total_color = total_color + diffuse;
 
             //specular
-            Vector3 V = ray.direction.normalize();
+            Vector3 V = (-1 * ray.direction).normalize();
             Vector3 h = (L + V).normalize();
 
             if(closestObj->finish.reflection != 0 && recursionDepth > 0) {
                Ray reflectray;
                reflectray.origin = p;
                reflectray.direction = reflect(ray.direction, n);
-               total_color = total_color +  
+               total_color = total_color*(1 - closestObj->finish.reflection) +  
                   (raycast(reflectray, objects, lights, recursionDepth - 1) *
                   closestObj->finish.reflection);
             }
+
+            /*
 
             else if(closestObj->finish.refraction != 0 && recursionDepth > 0) {
                Ray refractray;
@@ -196,6 +203,7 @@ Color raycast(const Ray & ray, const vector<GeomObject*>& objects, const vector<
                   return closestObj->color * closestObj->finish.ambient+ raycast(refractray, objects, lights, recursionDepth - 1);
                }
             }
+            */
 
             double specFactor = closestObj->finish.specular;
             double roughness = closestObj->finish.roughness;
@@ -208,6 +216,7 @@ Color raycast(const Ray & ray, const vector<GeomObject*>& objects, const vector<
 
    // no objects hit, return black
    return Color(0, 0, 0);
+   //return Color(1, 1, 1);
 }
 
 void parse_file(vector<GeomObject*> & objects, vector<Light*> & lights, Camera * camera) {

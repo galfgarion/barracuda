@@ -2,6 +2,7 @@
 #include <string>
 #include <sstream>
 #include <cstring>
+#include <math.h>
 
    Vector3 * Vector3::add(Vector3 *other)
    {
@@ -49,16 +50,17 @@
       if(magn == 0.0)
          return Vector3(*this);
 
-      double inv_mag = 1.0f / magn;
+      double inv_mag = 1.0 / magn;
 
       return *this * inv_mag;
    }
 
    double Vector3::magnitude() const
    {
-      return sqrt(x*x + y*y + z*z);
+      return sqrt(*this * *this);
    }
 
+   /*
    Vector3 * Vector3::multiply(double k)
    {
       Vector3 * product = new Vector3(*this);
@@ -68,6 +70,7 @@
 
       return product;
    }
+   */
 
    double Vector3::dot(Vector3 *const &other) {
       return other->x * x + other->y * y + other->z * z;
@@ -96,7 +99,7 @@
       return (a.x * b.x) + (a.y * b.y) + (a.z * b.z);
    }
 
-   Vector3 operator*(const Vector3& a, double b) {
+   Vector3 operator*(const Vector3& a, const double b) {
       return(Vector3(a.x * b, a.y * b, a.z * b));
    }
 

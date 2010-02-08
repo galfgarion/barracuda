@@ -5,6 +5,7 @@ using namespace std;
 
 // incoming ray, vector n on the surface at point p where it hit
 Vector3 reflect(Vector3 d, Vector3 n) {
+   n = n.normalize();
    return (d - (2.0 * (d*n) * n));
 }
 
@@ -60,6 +61,14 @@ int main() {
         << " is " << ray * normal << endl;
    cout << "Ray " << ray.c_str() << " was reflected around " << normal.c_str()
         << " to " << reflected.c_str() << endl;
+
+   ray = Vector3(0, 0, -1);
+   normal = Vector3(1, 0, 1);
+   reflected = reflect(ray, normal);
+   cout << "Ray " << ray.c_str() << " was reflected around " << normal.c_str()
+        << " to " << reflected.c_str() << endl;
+
+
 
    Vector3 refracted = refract(ray, normal, 1, 1.33);
 

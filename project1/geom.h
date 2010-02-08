@@ -11,6 +11,10 @@
 
 #define DEBUG false
 
+#ifndef EPSILON
+#define EPSILON 0.001
+#endif
+
 using namespace std;
 
 typedef Vector3 Point;
@@ -265,7 +269,7 @@ Plane::Plane(deque<string> & tokens) {
 }
 
 double Plane::intersect(const Ray & ray) {
-   Vector3 p1 = *_normal.multiply(_d);
+   Vector3 p1 = _normal * _d;
    double denom = ray.direction * _normal;
 
    if(denom == 0) {
@@ -273,7 +277,11 @@ double Plane::intersect(const Ray & ray) {
    }
 
    double numerator = (p1 - ray.origin) * _normal;
-   return numerator / denom;
+   double dist = numerator / denom;
+   if(dist < EPSILON) {
+      return -1;
+   }
+   return dist;
 }
 
 Sphere::Sphere(Vector3 &center, double radius) {
@@ -316,7 +324,7 @@ double Sphere::intersect(const Ray & ray) {
       double t1 = (-B + sqrt(discriminant)) / denom;
       double t2 = (-B - sqrt(discriminant)) / denom;
 
-      if(t1 < 0 && t2 < 0) {
+      if(t1 < EPSILON && t2 < EPSILON) {
          return -1;
       }
       else if(t1 < 0) {
