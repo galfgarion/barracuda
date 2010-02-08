@@ -21,3 +21,4 @@ plane {<0, 1, 0>, -4
       finish {ambient 0.4 diffuse 0.8 reflection 0.8}
 }
 
+

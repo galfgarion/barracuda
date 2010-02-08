@@ -1,6 +1,7 @@
-all: compile
+default: simplerecurse2
+
+simplerecurse2: compile
 	./raytracer +W640 +H480 +Irecurse_simp2.pov
-	povray +W640 +H480 recurse_simp2.pov
 
 compile:
 	g++ -o raytracer main.cpp vector3.cpp
@@ -11,8 +12,14 @@ simple: compile
 simplereflect: compile
 	./raytracer +W640 +H480 +Isimple_reflect.pov
 
+simplereflect2: compile
+	./raytracer +W640 +H480 +Isimple_reflect2.pov
+
 simplerefract: compile
 	./raytracer +W640 +H480 +Isimple_refract.pov
+
+simpletri: compile
+	./raytracer +W640 +H480 +Isimple_tri.pov
 
 simplespecular: compile
 	./raytracer +W640 +H480 +Isimple_spec.pov
@@ -26,6 +33,8 @@ clean:
 test:
 	g++ test.cpp vector3.cpp && ./a.out
 
-handin:
-	handin zwood csc473p1p3 *.h *.cpp simple.pov simple.ppm README Makefile *.vcproj *.sln
+required: simplereflect simplereflect2 simplerefract simpletri simplerecurse2
+
+handin: clean required
+	handin zwood csc473p1p3 *.h *.cpp *.pov *.ppm README Makefile
 
