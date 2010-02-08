@@ -1,13 +1,18 @@
-Diffuse shading and shadows work, but specular shading is not yet implemented.
+I generated the results on a 64-bit Ubuntu VM.  For reasons unknown to me, if I run the program on vogon
+the output is messed up.  It should output fine on a lab machine.
 
-The program handles multiple light sources and any number of spheres or planes,
-but no other geometry.
 
-The program outputs "standard" PPMs with magic number P6.
-This format uses binary RGB values.
+Reflection is working, but not refraction.  Some of refraction is working, but the internal/external part is
+not calculated correctly, which gives strange results.
 
+The color values are quite a bit off from povray and the examples.  In general my pictures are too dark.
+In the recursive pov it doesn't look loke enough color is transmitted :/
+
+There are extra shadows appearing on the planes in the simple recursive 2 output.  I'm working on fixing that.
+
+
+// true from before
 It draw differently on Windows vs. Linux.  Linux expects rgb byte ordering, 
 while Windows expects gbr.  Very curious indeed. The program will output
 the expected byte ordering for the system on which it is run/compiled.
 
-The submitted PPM was generated on vogon, so it has rgb byte ordering.

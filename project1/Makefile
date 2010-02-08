@@ -33,8 +33,8 @@ clean:
 test:
 	g++ test.cpp vector3.cpp && ./a.out
 
-required: simplereflect simplereflect2 simplerefract simpletri simplerecurse2
+required: clean simplereflect simplereflect2 simplerefract simpletri simplerecurse2
 
-handin: clean required
+handin:
 	handin zwood csc473p1p3 *.h *.cpp *.pov *.ppm README Makefile
 
