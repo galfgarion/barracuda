@@ -18,7 +18,7 @@
 #include "geom.h"
 #include "light.h"
 
-#define RECURSION_DEPTH 3
+#define RECURSION_DEPTH 1 
 
 using namespace std;
 
@@ -29,6 +29,8 @@ typedef struct image_t {
 int gPixelWidth = 128;
 int gPixelHeight = 96;
 string gInputFileName ("");
+
+bool shadowsOff = true;
 
 int parse_int(const char *arg);
 void parse_args(int argc, const char **argv);
@@ -158,7 +160,7 @@ Color raycast(const Ray & ray, const vector<GeomObject*>& objects, const vector<
              
          }
 
-         if(!inShadow) {
+         if(shadowsOff || !inShadow) {
             // diffuse
             Vector3 L = (lights[l]->location - p).normalize();
             double nDotL = max(0.0, n * L);
