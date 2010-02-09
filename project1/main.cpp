@@ -18,7 +18,7 @@
 #include "geom.h"
 #include "light.h"
 
-#define RECURSION_DEPTH 3 
+#define RECURSION_DEPTH 3
 
 using namespace std;
 
@@ -46,6 +46,9 @@ Color raycast(const Ray & ray, const vector<GeomObject*>& objects, const vector<
 // assume d, n are normalized
 Vector3 reflect(Vector3 d, Vector3 n) {
    //n = n.normalize();
+   if(d * n > 0) {// normal is flipped
+      n = -1 * n;
+   }
    return (d - (2.0 * (d*n) * n));
 }
 
@@ -143,10 +146,15 @@ Color raycast(const Ray & ray, const vector<GeomObject*>& objects, const vector<
       Point p = ray.origin + (ray.direction * distance); // point on object
       Vector3 n = closestObj->surfaceNormal(p); // surface normal
 
+      if(ray.direction * n > 0) { // normal is flipped
+         n = -1.0 * n; // reverse normal
+      }
+
       Color ambient = closestObj->color * closestObj->finish.ambient;
       Color localShading = ambient;
       Color reflectionShading = Color(0, 0, 0);
       Color refractionShading = Color(0, 0, 0);
+
 
       for(unsigned int l=0; l < lights.size(); l++) {
          bool inShadow = false;
@@ -155,9 +163,11 @@ Color raycast(const Ray & ray, const vector<GeomObject*>& objects, const vector<
             for(unsigned int j=0; j < objects.size(); j++) {
                Ray shadowFeeler;
                shadowFeeler.origin = p;
-               shadowFeeler.direction = lights[l]->location - p;
+               shadowFeeler.direction = (lights[l]->location - p).normalize();
                double feelerDistance = objects[j]->intersect(shadowFeeler);
-               if(feelerDistance > EPSILON) {
+               double lightDistance = (lights[l]->location
+                 - shadowFeeler.origin).magnitude();
+               if(feelerDistance > EPSILON && feelerDistance < lightDistance) {
                   inShadow = true;
                }
             }
@@ -193,14 +203,20 @@ Color raycast(const Ray & ray, const vector<GeomObject*>& objects, const vector<
             Ray refractray;
             refractray.origin = p;
             refractray.direction = refract(ray.direction, n, 1, closestObj->finish.ior);
+
+            if(refractray.direction * ray.direction < 0) { //TIR
+               refractionShading = Color(0, 0, 0);
+            } else {
             refractionShading = raycast(refractray, objects, lights, recursionDepth - 1);
+            }
          }
 
       }
 
-      return localShading = localShading * (1 - closestObj->finish.filter - closestObj->finish.reflection)
+      return localShading = localShading * (1 - closestObj->finish.reflection)
          + reflectionShading * closestObj->finish.reflection
-         + refractionShading;// * closestObj->finish.filter;
+         // TODO a hack since filter value isn't correctly set
+         + refractionShading * 0.5; //closestObj->finish.filter;
    }
 
    // no objects hit, return black
