@@ -81,6 +81,7 @@ class GeomObject {
       virtual Vector3 surfaceNormal(const Point & p) = 0;
 
       virtual void parseOptions(deque<string> & tokens) {
+        double tmpFilter = 0.0;
         while(!tokens.empty()) {
             if(!tokens.front().compare("pigment")) {
                tokens.pop_front(); // pigment
@@ -89,13 +90,15 @@ class GeomObject {
                tokens.push_front("color");
                color = Parser::parse_color(tokens);
                if(!colorType.compare("rgbf")) {
-                  finish.filter = Parser::parse_double(tokens);
-                  cout << "filter = " << finish.filter << endl;
+                  tmpFilter = Parser::parse_double(tokens);
                }
             } else if (!tokens.front().compare("finish")){
                this->finish = parse_finish(tokens);
             } else break;  
          }
+
+         finish.filter = tmpFilter;
+         cout << "filter = " << finish.filter << endl;
       }
 };
 
@@ -289,7 +292,7 @@ Sphere::Sphere(Vector3 &center, double radius) {
 }
 
 Sphere::Sphere(deque<string> & tokens) {
-   finish.specular = finish.diffuse = finish.ambient = 0.0;
+   finish.specular = finish.diffuse = finish.ambient = finish.filter = 0.0;
 
    assert(!tokens.front().compare("sphere"));
    tokens.pop_front();

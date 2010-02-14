@@ -52,7 +52,7 @@ Vector3 reflect(Vector3 d, Vector3 n) {
    return (d - (2.0 * (d*n) * n));
 }
 
-Vector3 refract(Vector3 d, Vector3 n, double iorIn, double iorOut) {
+Vector3 refract(Vector3 d, Vector3 n, double iorIn, double iorOut, bool * tir) {
    double iorRatio = iorIn / iorOut;
 
    if(d * n <= 0) { // ray inside object
@@ -63,8 +63,11 @@ Vector3 refract(Vector3 d, Vector3 n, double iorIn, double iorOut) {
 
    double underRoot = 1 - (iorRatioSquared * (1 - (d * n)*(d * n)));
    // total internal reflection
-   if(underRoot < 0)
+   if(underRoot < 0) {
+      *tir = true;
       return reflect(d, n);
+   }
+
 
    return (iorRatio * (d - n*(d * n)) - n*sqrt(underRoot)).normalize();
 }
@@ -190,6 +193,7 @@ Color raycast(const Ray & ray, const vector<GeomObject*>& objects, const vector<
             localShading = localShading + specular;
          }
 
+         /*
          if(closestObj->finish.reflection != 0 && recursionDepth > 0) {
             Ray reflectray;
             reflectray.origin = p;
@@ -198,25 +202,30 @@ Color raycast(const Ray & ray, const vector<GeomObject*>& objects, const vector<
             reflectionShading = raycast(reflectray, objects, lights, recursionDepth - 1);
                
          }
+         */
 
          if(closestObj->finish.refraction == 1 && recursionDepth > 0) {
             Ray refractray;
             refractray.origin = p;
-            refractray.direction = refract(ray.direction, n, 1, closestObj->finish.ior);
+            bool tir = false;
+            refractray.direction = refract(ray.direction, n, 1, closestObj->finish.ior, &tir);
 
-            if(refractray.direction * ray.direction < 0) { //TIR
+            // TODO testing HACK
+            refractray.direction = ray.direction;
+
+            if(tir) { //TIR
                refractionShading = Color(0, 0, 0);
             } else {
-            refractionShading = raycast(refractray, objects, lights, recursionDepth - 1);
+               refractionShading = raycast(refractray, objects, lights, recursionDepth - 1);
             }
          }
 
       }
 
-      return localShading = localShading * (1 - closestObj->finish.reflection)
+      return localShading = localShading * (1 - closestObj->finish.reflection - closestObj->finish.filter)
          + reflectionShading * closestObj->finish.reflection
          // TODO a hack since filter value isn't correctly set
-         + refractionShading * 0.5; //closestObj->finish.filter;
+         + refractionShading * closestObj->finish.filter;
    }
 
    // no objects hit, return black
