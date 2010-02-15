@@ -4,7 +4,7 @@ simplerecurse2: compile
 	./raytracer +W640 +H480 +Irecurse_simp2.pov
 
 compile:
-	g++ -o raytracer main.cpp vector3.cpp
+	g++ -g -o raytracer main.cpp vector3.cpp
 
 simple: compile
 	./raytracer +W640 +H480 +Isimple.pov

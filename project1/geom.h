@@ -12,7 +12,7 @@
 #define DEBUG false
 
 #ifndef EPSILON
-#define EPSILON 0.001
+#define EPSILON 0.00001
 #endif
 
 using namespace std;
@@ -326,18 +326,20 @@ double Sphere::intersect(const Ray & ray) {
       double t1 = (-B + sqrt(discriminant)) / denom;
       double t2 = (-B - sqrt(discriminant)) / denom;
 
+      if(t1 < 0 && t2 < 0) {
+         return -1;
+      }
+
       if(t1 < EPSILON && t2 < EPSILON) {
          return -1;
       }
+
       else if(t1 < EPSILON) {
          return t2;
       } else if(t2 < EPSILON) {
          return t1;
       } else {
-         if(t1 < t2)
-            return t1;
-         else 
-            return t2;
+         return min(t1, t2);
       }
    }
 }

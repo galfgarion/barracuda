@@ -32,7 +32,7 @@ string gInputFileName ("");
 
 bool shadowsOff = false;
 #ifndef EPSILON
-#define EPSILON 0.0001;
+#define EPSILON 0.00001;
 #endif
 
 int parse_int(const char *arg);
@@ -138,20 +138,20 @@ Color raycast(const Ray & ray, const vector<GeomObject*>& objects, const vector<
    for(unsigned int i=0; i < objects.size(); i++) {
       distance = objects[i]->intersect(ray);
 
-      if(distance > 0 && distance < closest) {
+      if(distance > EPSILON && distance < closest) {
          closest = distance;
          closestObj = objects[i];
       }
    }
 
    if(closestObj != NULL) {
-      distance = closestObj->intersect(ray);
+      distance = closest;
       Point p = ray.origin + (ray.direction * distance); // point on object
       Vector3 n = closestObj->surfaceNormal(p); // surface normal
 
-      if(ray.direction * n > 0) { // normal is flipped
-         n = -1.0 * n; // reverse normal
-      }
+      //if(ray.direction * n > 0) { // normal is flipped
+      //   n = -1.0 * n; // reverse normal
+      //}
 
       Color ambient = closestObj->color * closestObj->finish.ambient;
       Color localShading = ambient;
@@ -170,16 +170,24 @@ Color raycast(const Ray & ray, const vector<GeomObject*>& objects, const vector<
                double feelerDistance = objects[j]->intersect(shadowFeeler);
                double lightDistance = (lights[l]->location
                  - shadowFeeler.origin).magnitude();
-               if(feelerDistance > EPSILON && feelerDistance < lightDistance) {
+               if(objects[j] != closestObj && feelerDistance > EPSILON && feelerDistance < lightDistance) {
                   inShadow = true;
                }
             }
          }
 
          if(shadowsOff || !inShadow) {
+            // if hitting the back of something, reverse the normal
+            Vector3 N; 
+            if(ray.direction * n > EPSILON) {
+               N = -1 * n;
+            } else {
+               N = Vector3(n);
+            }
+
             // diffuse
             Vector3 L = (lights[l]->location - p).normalize();
-            double nDotL = max(0.0, n * L);
+            double nDotL = max(0.0, N * L);
             Color diffuse = closestObj->color * nDotL * closestObj->finish.diffuse; 
             localShading = localShading + diffuse;
 
@@ -188,21 +196,11 @@ Color raycast(const Ray & ray, const vector<GeomObject*>& objects, const vector<
             Vector3 h = (L + V).normalize();
 
             double specFactor = closestObj->finish.specular;
+            assert(specFactor >= 0);
             double roughness = closestObj->finish.roughness;
-            Color specular = lights[l]->color * specFactor * pow((n * h), 1 / roughness);
+            Color specular = lights[l]->color * specFactor * pow((N * h), 1 / roughness);
             localShading = localShading + specular;
          }
-
-         /*
-         if(closestObj->finish.reflection != 0 && recursionDepth > 0) {
-            Ray reflectray;
-            reflectray.origin = p;
-            reflectray.direction = reflect(ray.direction, n);
-
-            reflectionShading = raycast(reflectray, objects, lights, recursionDepth - 1);
-               
-         }
-         */
 
          if(closestObj->finish.refraction == 1 && recursionDepth > 0) {
             Ray refractray;
@@ -214,23 +212,51 @@ Color raycast(const Ray & ray, const vector<GeomObject*>& objects, const vector<
             refractray.direction = ray.direction;
 
             if(tir) { //TIR
-               refractionShading = Color(0, 0, 0);
+               // HACK PURPLE
+               refractionShading = Color(138.0/255, 43.0/255, 226.0/255);
             } else {
                refractionShading = raycast(refractray, objects, lights, recursionDepth - 1);
             }
          }
 
+         if((closestObj->finish.reflection != 0 || 
+            (closestObj->finish.refraction == 1 && ray.direction * n <= EPSILON))
+            && recursionDepth > 0) {
+
+            Ray reflectray;
+            reflectray.origin = p;
+            reflectray.direction = reflect(ray.direction, n);
+
+            reflectionShading = raycast(reflectray, objects, lights, 
+               recursionDepth - 1);
+         }
+
       }
 
-      return localShading = localShading * (1 - closestObj->finish.reflection - closestObj->finish.filter)
-         + reflectionShading * closestObj->finish.reflection
-         // TODO a hack since filter value isn't correctly set
-         + refractionShading * closestObj->finish.filter;
+      double filter = min(1.0, max(0.0, closestObj->finish.filter));
+      double reflect = min(1.0, max(0.0, closestObj->finish.reflection));
+
+      Color totalShading;
+
+
+      if(closestObj->finish.refraction == 1) {
+         double local = 1 - filter - reflect;
+         assert(local >= 0);
+         totalShading = localShading * local + reflectionShading * reflect
+            + refractionShading * filter;
+      } else {
+         double local = 1 - reflect;
+         totalShading = localShading * local + reflectionShading * reflect;
+      }
+
+      return totalShading;
+
    }
 
    // no objects hit, return black
-   return Color(0, 0, 0);
-   //return Color(1, 1, 1);
+   //return Color(0, 0, 0);
+   // TODO HACK debug ORANGE
+   return Color(255.0/255, 69.0/255, 0);
 }
 
 void parse_file(vector<GeomObject*> & objects, vector<Light*> & lights, Camera * camera) {
