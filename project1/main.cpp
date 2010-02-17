@@ -256,7 +256,8 @@ Color raycast(const Ray & ray, const vector<GeomObject*>& objects, const vector<
    // no objects hit, return black
    //return Color(0, 0, 0);
    // TODO HACK debug ORANGE
-   return Color(255.0/255, 69.0/255, 0);
+   //return Color(255.0/255, 69.0/255, 0);
+   return Color(0, 0, 0);
 }
 
 void parse_file(vector<GeomObject*> & objects, vector<Light*> & lights, Camera * camera) {

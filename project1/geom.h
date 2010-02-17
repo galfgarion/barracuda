@@ -27,6 +27,8 @@ typedef struct s_ray {
 typedef struct finish_t {
    double ambient, diffuse, specular, roughness;
    double ior, reflection, refraction, filter;
+   finish_t() : ambient(0), diffuse(0), specular(0), roughness(0),
+      ior(1), reflection(0), refraction(0), filter(0) {}
 } Finish;
 
 Finish parse_finish (deque<string> & tokens) {
