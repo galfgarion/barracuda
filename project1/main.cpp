@@ -55,8 +55,9 @@ Vector3 reflect(Vector3 d, Vector3 n) {
 Vector3 refract(Vector3 d, Vector3 n, double iorIn, double iorOut, bool * tir) {
    double iorRatio = iorIn / iorOut;
 
-   if(d * n <= 0) { // ray inside object
-      iorRatio = 1.0 / iorRatio;
+   if(d * n > 0) { // ray inside object
+     iorRatio = 1.0 / iorRatio;
+     n = -1 * n;
    }
 
    double iorRatioSquared = iorRatio * iorRatio;
@@ -157,7 +158,7 @@ Color raycast(const Ray & ray, const vector<GeomObject*>& objects, const vector<
       Color localShading = ambient;
       Color reflectionShading = Color(0, 0, 0);
       Color refractionShading = Color(0, 0, 0);
-
+      bool tir = false;
 
       for(unsigned int l=0; l < lights.size(); l++) {
          bool inShadow = false;
@@ -205,15 +206,15 @@ Color raycast(const Ray & ray, const vector<GeomObject*>& objects, const vector<
          if(closestObj->finish.refraction == 1 && recursionDepth > 0) {
             Ray refractray;
             refractray.origin = p;
-            bool tir = false;
             refractray.direction = refract(ray.direction, n, 1, closestObj->finish.ior, &tir);
 
             // TODO testing HACK
-            refractray.direction = ray.direction;
+            //refractray.direction = ray.direction;
 
             if(tir) { //TIR
                // HACK PURPLE
-               refractionShading = Color(138.0/255, 43.0/255, 226.0/255);
+               //refractionShading = Color(138.0/255, 43.0/255, 226.0/255);
+               refractionShading = Color(0, 0, 0);
             } else {
                refractionShading = raycast(refractray, objects, lights, recursionDepth - 1);
             }
@@ -239,7 +240,7 @@ Color raycast(const Ray & ray, const vector<GeomObject*>& objects, const vector<
       Color totalShading;
 
 
-      if(closestObj->finish.refraction == 1) {
+      if(closestObj->finish.refraction == 1 && !tir) {
          double local = 1 - filter - reflect;
          assert(local >= 0);
          totalShading = localShading * local + reflectionShading * reflect

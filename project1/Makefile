@@ -16,7 +16,7 @@ simplereflect2: compile
 	./raytracer +W640 +H480 +Isimple_reflect2.pov
 
 simplerefract: compile
-	./raytracer +W640 +H480 +Isimple_refract.pov
+	./raytracer +W800 +H600 +Isimple_refract.pov
 
 simpletri: compile
 	./raytracer +W640 +H480 +Isimple_tri.pov
