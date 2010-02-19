@@ -37,6 +37,12 @@ const char * Matrix4x4::c_str() {
    return o.str().c_str();
 }
 
+Matrix4x4 Matrix4x4::inverse() {
+}
+
+// -------------------------------------------
+// operator overloads
+
 Matrix4x4& operator*=(Matrix4x4& A, double r) {
    for(int i=0; i < 4; i++) {
       for(int j=0; j < 4; j++) {
