@@ -33,6 +33,9 @@ clean:
 test:
 	g++ test.cpp vector3.cpp && ./a.out
 
+matrixtest:
+	g++ -o matrix_test matrix_test.cpp matrix4x4.cpp && ./matrix_test
+
 required: clean simplereflect simplereflect2 simplerefract simpletri simplerecurse2
 
 handin:
