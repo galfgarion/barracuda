@@ -45,6 +45,21 @@ Matrix4x4 operator*=(Matrix4x4& A, double r) {
    }
 }
 
+Matrix4x4& operator+=(Matrix4x4& A, const Matrix4x4& B) {
+   for(int i=0; i < 4; i++) {
+      for(int j=0; j < 4; j++) {
+         A.m[i][j] += B.m[i][j];
+      }
+   }
+   return A;
+}
+
+Matrix4x4 operator+(const Matrix4x4& A, const Matrix4x4& B) {
+   Matrix4x4 result = Matrix4x4(A);
+   result += B;
+   return result;
+}
+
 Matrix4x4 operator*(const Matrix4x4& A, double r) {
    Matrix4x4 result = Matrix4x4(A);
    result *= r;
