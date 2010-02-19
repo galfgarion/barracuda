@@ -15,8 +15,14 @@ int main(void) {
                          {9, 10, 11, 12},
                          {13, 14, 15, 16}
                        };
+   double arr3[4][4] = { {1, 0, 0, 0},
+                         {0, 1, 0, 0},
+                         {0, 0, 1, 0},
+                         {0, 0, 0, 1}
+                       };
    Matrix4x4 A = Matrix4x4(arr1);
    Matrix4x4 B = Matrix4x4(arr1);
+   Matrix4x4 I = Matrix4x4(arr3);
    cout << "Matrix A: " << A.c_str() << endl;
    assert(A.m[3][3] == 16);
    A *= 2;
@@ -32,5 +38,15 @@ int main(void) {
    B = B + A;
    cout << "B = B + A: " <<  B.c_str() << endl;
    assert(B.m[3][3] == 48);
+   B = B * I;
+   cout << "B * I: " << B.c_str() << endl;
+   assert(B.m[3][3] == 48);
+   A = Matrix4x4(arr1);
+   cout << "Matrix A: " << A.c_str() << endl;
+   A = A * A;
+   cout << "A * A: " << A.c_str() << endl;
+   assert(A.m[0][0] == 90);
+   assert(A.m[3][3] == 600);
+
 
 }
