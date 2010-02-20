@@ -7,6 +7,7 @@ class Matrix4x4 {
       Matrix4x4();
       Matrix4x4(double[4][4]);
       const char * c_str();
+      double determinant();
       Matrix4x4 inverse();
 };
 
