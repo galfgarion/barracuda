@@ -1,6 +1,13 @@
 #include "matrix4x4.h"
 #include <string>
 #include <sstream>
+#include <assert.h>
+
+
+#define ZERO 0
+#define ONE 1
+#define TWO 2
+#define THREE 3
 
 using namespace std;
 
@@ -38,54 +45,60 @@ const char * Matrix4x4::c_str() {
 }
 
 double Matrix4x4::determinant() {
-   return m[1][1]*m[2][2]*m[3][3]*m[4][4] + m[1][1]*m[2][3]*m[3][4]*m[4][2]
-        + m[1][1]*m[2][4]*m[3][2]*m[4][3] + m[1][2]*m[2][1]*m[3][4]*m[4][3]
-        + m[1][2]*m[2][3]*m[3][1]*m[4][4] + m[1][2]*m[2][4]*m[3][3]*m[4][1]
-        + m[1][3]*m[2][1]*m[3][2]*m[4][4] + m[1][3]*m[2][2]*m[3][4]*m[4][1]
-        + m[1][3]*m[2][4]*m[3][1]*m[4][2] + m[1][4]*m[2][1]*m[3][3]*m[4][2]
-        + m[1][4]*m[2][2]*m[3][1]*m[4][3] + m[1][4]*m[2][3]*m[3][2]*m[4][1]
-        - m[1][1]*m[2][2]*m[3][4]*m[4][3] - m[1][1]*m[2][3]*m[3][2]*m[4][4]
-        - m[1][1]*m[2][4]*m[3][3]*m[4][2] - m[1][2]*m[2][1]*m[3][3]*m[4][4]
-        - m[1][2]*m[2][3]*m[3][4]*m[4][1] - m[1][2]*m[2][4]*m[3][1]*m[4][3]
-        - m[1][3]*m[2][1]*m[3][4]*m[4][2] - m[1][3]*m[2][2]*m[3][1]*m[4][4]
-        - m[1][3]*m[2][4]*m[3][2]*m[4][1] - m[1][4]*m[2][1]*m[3][2]*m[4][3]
-        - m[1][4]*m[2][2]*m[3][3]*m[4][1] - m[1][4]*m[2][3]*m[3][1]*m[4][2]
+   return m[ZERO][ZERO]*m[ONE][ONE]*m[TWO][TWO]*m[THREE][THREE] + m[ZERO][ZERO]*m[ONE][TWO]*m[TWO][THREE]*m[THREE][ONE]
+        + m[ZERO][ZERO]*m[ONE][THREE]*m[TWO][ONE]*m[THREE][TWO] + m[ZERO][ONE]*m[ONE][ZERO]*m[TWO][THREE]*m[THREE][TWO]
+        + m[ZERO][ONE]*m[ONE][TWO]*m[TWO][ZERO]*m[THREE][THREE] + m[ZERO][ONE]*m[ONE][THREE]*m[TWO][TWO]*m[THREE][ZERO]
+        + m[ZERO][TWO]*m[ONE][ZERO]*m[TWO][ONE]*m[THREE][THREE] + m[ZERO][TWO]*m[ONE][ONE]*m[TWO][THREE]*m[THREE][ZERO]
+        + m[ZERO][TWO]*m[ONE][THREE]*m[TWO][ZERO]*m[THREE][ONE] + m[ZERO][THREE]*m[ONE][ZERO]*m[TWO][TWO]*m[THREE][ONE]
+        + m[ZERO][THREE]*m[ONE][ONE]*m[TWO][ZERO]*m[THREE][TWO] + m[ZERO][THREE]*m[ONE][TWO]*m[TWO][ONE]*m[THREE][ZERO]
+        - m[ZERO][ZERO]*m[ONE][ONE]*m[TWO][THREE]*m[THREE][TWO] - m[ZERO][ZERO]*m[ONE][TWO]*m[TWO][ONE]*m[THREE][THREE]
+        - m[ZERO][ZERO]*m[ONE][THREE]*m[TWO][TWO]*m[THREE][ONE] - m[ZERO][ONE]*m[ONE][ZERO]*m[TWO][TWO]*m[THREE][THREE]
+        - m[ZERO][ONE]*m[ONE][TWO]*m[TWO][THREE]*m[THREE][ZERO] - m[ZERO][ONE]*m[ONE][THREE]*m[TWO][ZERO]*m[THREE][TWO]
+        - m[ZERO][TWO]*m[ONE][ZERO]*m[TWO][THREE]*m[THREE][ONE] - m[ZERO][TWO]*m[ONE][ONE]*m[TWO][ZERO]*m[THREE][THREE]
+        - m[ZERO][TWO]*m[ONE][THREE]*m[TWO][ONE]*m[THREE][ZERO] - m[ZERO][THREE]*m[ONE][ZERO]*m[TWO][ONE]*m[THREE][TWO]
+        - m[ZERO][THREE]*m[ONE][ONE]*m[TWO][TWO]*m[THREE][ZERO] - m[ZERO][THREE]*m[ONE][TWO]*m[TWO][ZERO]*m[THREE][ONE]
         ;
 }
 
 Matrix4x4 Matrix4x4::inverse() {
    double b [4][4];
-   b[1][1] = m[2][2]*m[3][3]*m[4][4] + m[2][3]*m[3][4]*m[4][2] + m[2][4]*m[3][2]*m[4][3] - m[2][2]*m[3][4]*m[4][3] - m[2][3]*m[3][2]*m[4][4] - m[2][4]*m[3][3]*m[4][2];
+   b[ZERO][ZERO] = m[ONE][ONE]*m[TWO][TWO]*m[THREE][THREE] + m[ONE][TWO]*m[TWO][THREE]*m[THREE][ONE] + m[ONE][THREE]*m[TWO][ONE]*m[THREE][TWO] - m[ONE][ONE]*m[TWO][THREE]*m[THREE][TWO] - m[ONE][TWO]*m[TWO][ONE]*m[THREE][THREE] - m[ONE][THREE]*m[TWO][TWO]*m[THREE][ONE];
 
-   b[1][2] = m[1][2]*m[3][4]*m[4][3] + m[1][3]*m[3][2]*m[4][4] + m[1][4]*m[3][3]*m[4][2] - m[1][2]*m[3][3]*m[4][4] - m[1][3]*m[3][4]*m[4][2] - m[1][4]*m[3][2]*m[4][3];
+   b[ZERO][ONE] = m[ZERO][ONE]*m[TWO][THREE]*m[THREE][TWO] + m[ZERO][TWO]*m[TWO][ONE]*m[THREE][THREE] + m[ZERO][THREE]*m[TWO][TWO]*m[THREE][ONE] - m[ZERO][ONE]*m[TWO][TWO]*m[THREE][THREE] - m[ZERO][TWO]*m[TWO][THREE]*m[THREE][ONE] - m[ZERO][THREE]*m[TWO][ONE]*m[THREE][TWO];
  
-   b[1][3] = m[1][2]*m[2][3]*m[4][4] + m[1][3]*m[2][4]*m[4][2] + m[1][4]*m[2][2]*m[4][3] - m[1][2]*m[2][4]*m[4][3] - m[1][3]*m[2][2]*m[4][4] - m[1][4]*m[2][3]*m[4][2];
+   b[ZERO][TWO] = m[ZERO][ONE]*m[ONE][TWO]*m[THREE][THREE] + m[ZERO][TWO]*m[ONE][THREE]*m[THREE][ONE] + m[ZERO][THREE]*m[ONE][ONE]*m[THREE][TWO] - m[ZERO][ONE]*m[ONE][THREE]*m[THREE][TWO] - m[ZERO][TWO]*m[ONE][ONE]*m[THREE][THREE] - m[ZERO][THREE]*m[ONE][TWO]*m[THREE][ONE];
 
-   b[1][4] = m[1][2]*m[2][4]*m[3][3] + m[1][3]*m[2][2]*m[3][4] + m[1][4]*m[2][3]*m[3][2] - m[1][2]*m[2][3]*m[3][4] - m[1][3]*m[2][4]*m[3][2] - m[1][4]*m[2][2]*m[3][3];
+   b[ZERO][THREE] = m[ZERO][ONE]*m[ONE][THREE]*m[TWO][TWO] + m[ZERO][TWO]*m[ONE][ONE]*m[TWO][THREE] + m[ZERO][THREE]*m[ONE][TWO]*m[TWO][ONE] - m[ZERO][ONE]*m[ONE][TWO]*m[TWO][THREE] - m[ZERO][TWO]*m[ONE][THREE]*m[TWO][ONE] - m[ZERO][THREE]*m[ONE][ONE]*m[TWO][TWO];
 
-   b[2][1] = m[2][1]*m[3][4]*m[4][3] + m[2][3]*m[3][1]*m[4][4] + m[2][4]*m[3][3]*m[4][1] - m[2][1]*m[3][3]*m[4][4] - m[2][3]*m[3][4]*m[4][1] - m[2][4]*m[3][1]*m[4][3];
+   b[ONE][ZERO] = m[ONE][ZERO]*m[TWO][THREE]*m[THREE][TWO] + m[ONE][TWO]*m[TWO][ZERO]*m[THREE][THREE] + m[ONE][THREE]*m[TWO][TWO]*m[THREE][ZERO] - m[ONE][ZERO]*m[TWO][TWO]*m[THREE][THREE] - m[ONE][TWO]*m[TWO][THREE]*m[THREE][ZERO] - m[ONE][THREE]*m[TWO][ZERO]*m[THREE][TWO];
 
-   b[2][2] = m[1][1]*m[3][3]*m[4][4] + m[1][3]*m[3][4]*m[4][1] + m[1][4]*m[3][1]*m[4][3] - m[1][1]*m[3][4]*m[4][3] - m[1][3]*m[3][1]*m[4][4] - m[1][4]*m[3][3]*m[4][1];
+   b[ONE][ONE] = m[ZERO][ZERO]*m[TWO][TWO]*m[THREE][THREE] + m[ZERO][TWO]*m[TWO][THREE]*m[THREE][ZERO] + m[ZERO][THREE]*m[TWO][ZERO]*m[THREE][TWO] - m[ZERO][ZERO]*m[TWO][THREE]*m[THREE][TWO] - m[ZERO][TWO]*m[TWO][ZERO]*m[THREE][THREE] - m[ZERO][THREE]*m[TWO][TWO]*m[THREE][ZERO];
 
-   b[2][3] = m[1][1]*m[2][4]*m[4][3] + m[1][3]*m[2][1]*m[4][4] + m[1][4]*m[2][3]*m[4][1] - m[1][1]*m[2][3]*m[4][4] - m[1][3]*m[2][4]*m[4][1] - m[1][4]*m[2][1]*m[4][3];
+   b[ONE][TWO] = m[ZERO][ZERO]*m[ONE][THREE]*m[THREE][TWO] + m[ZERO][TWO]*m[ONE][ZERO]*m[THREE][THREE] + m[ZERO][THREE]*m[ONE][TWO]*m[THREE][ZERO] - m[ZERO][ZERO]*m[ONE][TWO]*m[THREE][THREE] - m[ZERO][TWO]*m[ONE][THREE]*m[THREE][ZERO] - m[ZERO][THREE]*m[ONE][ZERO]*m[THREE][TWO];
 
-   b[2][4] = m[1][1]*m[2][3]*m[3][4] + m[1][3]*m[2][4]*m[3][1] + m[1][4]*m[2][1]*m[3][3] - m[1][1]*m[2][4]*m[3][3] - m[1][3]*m[2][1]*m[3][4] - m[1][4]*m[2][3]*m[3][1];
+   b[ONE][THREE] = m[ZERO][ZERO]*m[ONE][TWO]*m[TWO][THREE] + m[ZERO][TWO]*m[ONE][THREE]*m[TWO][ZERO] + m[ZERO][THREE]*m[ONE][ZERO]*m[TWO][TWO] - m[ZERO][ZERO]*m[ONE][THREE]*m[TWO][TWO] - m[ZERO][TWO]*m[ONE][ZERO]*m[TWO][THREE] - m[ZERO][THREE]*m[ONE][TWO]*m[TWO][ZERO];
 
-   b[3][1] = m[2][1]*m[3][2]*m[4][4] + m[2][2]*m[3][4]*m[4][1] + m[2][4]*m[3][1]*m[4][2] - m[2][1]*m[3][4]*m[4][2] - m[2][2]*m[3][1]*m[4][4] - m[2][4]*m[3][2]*m[4][1];
+   b[TWO][ZERO] = m[ONE][ZERO]*m[TWO][ONE]*m[THREE][THREE] + m[ONE][ONE]*m[TWO][THREE]*m[THREE][ZERO] + m[ONE][THREE]*m[TWO][ZERO]*m[THREE][ONE] - m[ONE][ZERO]*m[TWO][THREE]*m[THREE][ONE] - m[ONE][ONE]*m[TWO][ZERO]*m[THREE][THREE] - m[ONE][THREE]*m[TWO][ONE]*m[THREE][ZERO];
 
-   b[3][2] = m[1][1]*m[3][4]*m[4][2] + m[1][2]*m[3][1]*m[4][4] + m[1][4]*m[3][2]*m[4][1] - m[1][1]*m[3][2]*m[4][4] - m[1][2]*m[3][4]*m[4][1] - m[1][4]*m[3][1]*m[4][2];
+   b[TWO][ONE] = m[ZERO][ZERO]*m[TWO][THREE]*m[THREE][ONE] + m[ZERO][ONE]*m[TWO][ZERO]*m[THREE][THREE] + m[ZERO][THREE]*m[TWO][ONE]*m[THREE][ZERO] - m[ZERO][ZERO]*m[TWO][ONE]*m[THREE][THREE] - m[ZERO][ONE]*m[TWO][THREE]*m[THREE][ZERO] - m[ZERO][THREE]*m[TWO][ZERO]*m[THREE][ONE];
 
-   b[3][3] = m[1][1]*m[2][2]*m[4][4] + m[1][2]*m[2][4]*m[4][1] + m[1][4]*m[2][1]*m[4][2] - m[1][1]*m[2][4]*m[4][2] - m[1][2]*m[2][1]*m[4][4] - m[1][4]*m[2][2]*m[4][1];
+   b[TWO][TWO] = m[ZERO][ZERO]*m[ONE][ONE]*m[THREE][THREE] + m[ZERO][ONE]*m[ONE][THREE]*m[THREE][ZERO] + m[ZERO][THREE]*m[ONE][ZERO]*m[THREE][ONE] - m[ZERO][ZERO]*m[ONE][THREE]*m[THREE][ONE] - m[ZERO][ONE]*m[ONE][ZERO]*m[THREE][THREE] - m[ZERO][THREE]*m[ONE][ONE]*m[THREE][ZERO];
 
-   b[3][4] = m[1][1]*m[2][4]*m[3][2] + m[1][2]*m[2][1]*m[3][4] + m[1][4]*m[2][2]*m[3][1] - m[1][1]*m[2][2]*m[3][4] - m[1][2]*m[2][4]*m[3][1] - m[1][4]*m[2][1]*m[3][2];
+   b[TWO][THREE] = m[ZERO][ZERO]*m[ONE][THREE]*m[TWO][ONE] + m[ZERO][ONE]*m[ONE][ZERO]*m[TWO][THREE] + m[ZERO][THREE]*m[ONE][ONE]*m[TWO][ZERO] - m[ZERO][ZERO]*m[ONE][ONE]*m[TWO][THREE] - m[ZERO][ONE]*m[ONE][THREE]*m[TWO][ZERO] - m[ZERO][THREE]*m[ONE][ZERO]*m[TWO][ONE];
 
-   b[4][1] = m[2][1]*m[3][3]*m[4][2] + m[2][2]*m[3][1]*m[4][3] + m[2][3]*m[3][2]*m[4][1] - m[2][1]*m[3][2]*m[4][3] - m[2][2]*m[3][3]*m[4][1] - m[2][3]*m[3][1]*m[4][2];
+   b[THREE][ZERO] = m[ONE][ZERO]*m[TWO][TWO]*m[THREE][ONE] + m[ONE][ONE]*m[TWO][ZERO]*m[THREE][TWO] + m[ONE][TWO]*m[TWO][ONE]*m[THREE][ZERO] - m[ONE][ZERO]*m[TWO][ONE]*m[THREE][TWO] - m[ONE][ONE]*m[TWO][TWO]*m[THREE][ZERO] - m[ONE][TWO]*m[TWO][ZERO]*m[THREE][ONE];
 
-   b[4][2] = m[1][1]*m[3][2]*m[4][3] + m[1][2]*m[3][3]*m[4][1] + m[1][3]*m[3][1]*m[4][2] - m[1][1]*m[3][3]*m[4][2] - m[1][2]*m[3][1]*m[4][3] - m[1][3]*m[3][2]*m[4][1];
+   b[THREE][ONE] = m[ZERO][ZERO]*m[TWO][ONE]*m[THREE][TWO] + m[ZERO][ONE]*m[TWO][TWO]*m[THREE][ZERO] + m[ZERO][TWO]*m[TWO][ZERO]*m[THREE][ONE] - m[ZERO][ZERO]*m[TWO][TWO]*m[THREE][ONE] - m[ZERO][ONE]*m[TWO][ZERO]*m[THREE][TWO] - m[ZERO][TWO]*m[TWO][ONE]*m[THREE][ZERO];
 
-   b[4][3] = m[1][1]*m[2][3]*m[4][2] + m[1][2]*m[2][1]*m[4][3] + m[1][3]*m[2][2]*m[4][1] - m[1][1]*m[2][2]*m[4][3] - m[1][2]*m[2][3]*m[4][1] - m[1][3]*m[2][1]*m[4][2];
+   b[THREE][TWO] = m[ZERO][ZERO]*m[ONE][TWO]*m[THREE][ONE] + m[ZERO][ONE]*m[ONE][ZERO]*m[THREE][TWO] + m[ZERO][TWO]*m[ONE][ONE]*m[THREE][ZERO] - m[ZERO][ZERO]*m[ONE][ONE]*m[THREE][TWO] - m[ZERO][ONE]*m[ONE][TWO]*m[THREE][ZERO] - m[ZERO][TWO]*m[ONE][ZERO]*m[THREE][ONE];
 
-   b[4][4] = m[1][1]*m[2][2]*m[3][3] + m[1][2]*m[2][3]*m[3][1] + m[1][3]*m[2][1]*m[3][2] - m[1][1]*m[2][3]*m[3][2] - m[1][2]*m[2][1]*m[3][3] - m[1][3]*m[2][2]*m[3][1];
+   b[THREE][THREE] = m[ZERO][ZERO]*m[ONE][ONE]*m[TWO][TWO] + m[ZERO][ONE]*m[ONE][TWO]*m[TWO][ZERO] + m[ZERO][TWO]*m[ONE][ZERO]*m[TWO][ONE] - m[ZERO][ZERO]*m[ONE][TWO]*m[TWO][ONE] - m[ZERO][ONE]*m[ONE][ZERO]*m[TWO][TWO] - m[ZERO][TWO]*m[ONE][ONE]*m[TWO][ZERO];
+
+   Matrix4x4 B = Matrix4x4(b);
+   double det = this->determinant();
+   assert(det != 0);
+   B *= (1 / det);
+   return B;
 }
 
 // -------------------------------------------

@@ -48,5 +48,10 @@ int main(void) {
    assert(A.m[0][0] == 90);
    assert(A.m[3][3] == 600);
 
+   Matrix4x4 C = I.inverse();
+   cout << "C = I.inverse(): " << C.c_str() << endl;
+
+   C = I * C;
+   cout << "I * C: " << C.c_str() << endl; 
 
 }
