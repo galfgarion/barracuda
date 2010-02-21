@@ -5,6 +5,7 @@
 #include "vector3.h"
 #include "parser.h"
 #include "color.h"
+#include "matrix4x4.h"
 
 #ifndef _GEOM_H
 #define _GEOM_H
@@ -385,6 +386,15 @@ class Camera {
          }
 
          return Camera(eye, up, right, lookAt);
+      }
+
+      Matrix4x4 transform() {
+         return Matrix4x4(
+            1, 0, 0, eye.x,
+            0, 1, 0, eye.y,
+            0, 0, 1, eye.z,
+            0, 0, 0, 1
+         );
       }
 };
 

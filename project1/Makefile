@@ -7,7 +7,7 @@ marble2: compile
 	./raytracer +W640 +H480 +Imarble2.pov
 
 compile:
-	g++ -g -o raytracer main.cpp vector3.cpp
+	g++ -g -o raytracer main.cpp matrix4x4.cpp vector3.cpp
 
 simple: compile
 	./raytracer +W640 +H480 +Isimple.pov

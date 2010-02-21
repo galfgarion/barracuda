@@ -115,11 +115,13 @@ int main(int argc, char **argv) {
       for(int y = 0; y < gPixelHeight; y++) {
 
          Ray ray;
-         ray.origin = *screen.pixelToScreen(x, y);
+         ray.origin = Vector3(0, 0, 1);
 
          //cout << "ray.origin: <" << ray.origin.x << "," << ray.origin.y << "," << ray.origin.z << ">" << endl;
-         ray.direction = (ray.origin - camera.eye).normalize();
+         ray.direction = (*screen.pixelToScreen(x, y) - ray.origin).normalize();
          //ray.direction = (ray.origin - camera.eye);
+         //
+         ray.origin = camera.transform() * ray.direction;
 
          image[x][y] = raycast(ray, objects, lights, RECURSION_DEPTH);
       }
