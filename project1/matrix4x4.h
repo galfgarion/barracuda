@@ -1,6 +1,8 @@
 #ifndef _MATRIX4X4
 #define _MATRIX4X4
 
+#include "vector3.h"
+
 class Matrix4x4 {
    public:
       double m [4][4];
@@ -23,5 +25,6 @@ extern Matrix4x4 operator*(const double b, const Matrix4x4& a);
 extern Matrix4x4& operator+=(Matrix4x4& A, const Matrix4x4& B);
 extern Matrix4x4 operator+(const Matrix4x4& A, const Matrix4x4& B);
 extern Matrix4x4 operator*(const Matrix4x4& A, const Matrix4x4& B);
+extern Vector3 operator*(const Matrix4x4& A, const Vector3& v);
 
 #endif

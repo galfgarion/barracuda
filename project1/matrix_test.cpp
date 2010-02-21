@@ -86,9 +86,18 @@ int main(void) {
 
 
    // composit matrix
-   Matrix4x4 M = (scaleMatrix * rotMatrix) * transMatrix;
+   Matrix4x4 M = (transMatrix * rotMatrix) * scaleMatrix;
    cout << "Composite matrix: " << M.c_str() << endl;
    cout << "Inverse composite matrix: " << M.inverse().c_str() << endl;
    cout << "Composite times its inverse: " << (M * M.inverse()).c_str() << endl;
+
+   Vector3 vector = Vector3(-1, -1, -1);
+   cout << "Vector: " << vector.c_str() << endl;
+   cout << "Rot matrix * vector: " << (rotMatrix * vector).c_str() << endl;
+   cout << "Trans matrix * vector: " << (transMatrix * vector).c_str() << endl;
+   cout << "Scale matrix * vector: " << (scaleMatrix * vector).c_str() << endl;
+
+   cout << "Composite matrix * vector: " << (M * vector).c_str() << endl;
+   cout << "Composite matrix inv * ANS: " <<  (M.inverse() * (M * vector)).c_str() << endl;
 
 }
