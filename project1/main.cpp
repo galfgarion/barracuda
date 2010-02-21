@@ -110,6 +110,8 @@ int main(int argc, char **argv) {
    Screen screen = Screen(gPixelWidth, gPixelHeight, camera.eye, -camera.right.magnitude() / 2.0,
       camera.right.magnitude() / 2.0, camera.up.magnitude() / 2.0, -camera.up.magnitude() / 2.0);
 
+   Matrix4x4 cameraTransform = camera.transform();
+   Matrix4x4 cameraVectorTransform = camera.vectorTransform();
    /* clear the colors */
    for(int x = 0; x < gPixelWidth; x++) {
       for(int y = 0; y < gPixelHeight; y++) {
@@ -118,10 +120,12 @@ int main(int argc, char **argv) {
          ray.origin = Vector3(0, 0, 1);
 
          //cout << "ray.origin: <" << ray.origin.x << "," << ray.origin.y << "," << ray.origin.z << ">" << endl;
+
          ray.direction = (*screen.pixelToScreen(x, y) - ray.origin).normalize();
          //ray.direction = (ray.origin - camera.eye);
          //
-         ray.origin = camera.transform() * ray.direction;
+         ray.origin = camera.translate() * ray.origin;
+         ray.direction = cameraVectorTransform * ray.direction;
 
          image[x][y] = raycast(ray, objects, lights, RECURSION_DEPTH);
       }

@@ -1,5 +1,16 @@
 default: simplerecurse2
 
+make simplecam: simplecam0 simplecam1 simplecam2 simplecam3
+
+simplecam0: compile
+	./raytracer +W640 +H480 +Isimp_cam0.pov
+simplecam1: compile
+	./raytracer +W640 +H480 +Isimp_cam1.pov
+simplecam2: compile
+	./raytracer +W640 +H480 +Isimp_cam2.pov
+simplecam3: compile
+	./raytracer +W640 +H480 +Isimp_cam3.pov
+
 simplerecurse2: compile
 	./raytracer +W640 +H480 +Irecurse_simp2.pov
 

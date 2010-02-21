@@ -378,7 +378,7 @@ class Camera {
                cout << "set camera \"right\" to " << right.c_str() << endl;
             } else if(token.compare("look_at") == 0) {
                lookAt = Parser::parse_vector(tokens);
-               cout << "set camera \"look_at\" to " << eye.c_str() << endl;
+               cout << "set camera \"look_at\" to " << lookAt.c_str() << endl;
             } else {
                tokens.push_front(token); //return the unused token
                break;
@@ -388,7 +388,7 @@ class Camera {
          return Camera(eye, up, right, lookAt);
       }
 
-      Matrix4x4 transform() {
+      Matrix4x4 translate() {
          return Matrix4x4(
             1, 0, 0, eye.x,
             0, 1, 0, eye.y,
@@ -396,6 +396,46 @@ class Camera {
             0, 0, 0, 1
          );
       }
+
+      Matrix4x4 vectorTransform() {
+         // making certain assumptions
+         // up vector is assumed to always be <0, 1, 0>
+
+         // phi is pitch, theta is yaw
+         Vector3 lookVec = (lookAt - eye).normalize();
+         // proj onto x-z axis
+         Vector3 lookProj = Vector3(lookVec.x, 0, lookVec.z).normalize();
+         cout << "lookVec: " << lookVec.c_str() << endl;
+         cout << "lookProj: " << lookProj.c_str() << endl;
+         double cosPhi = lookVec * lookProj;
+         double sinPhi = sqrt(1 - cosPhi*cosPhi);
+         Vector3 downZaxis = Vector3(0, 0, -1);
+         double cosTheta = lookProj * downZaxis;
+         double sinTheta = sqrt(1 - cosTheta*cosTheta);
+
+         cout << "cos(theta) = " << cosTheta << endl;
+
+         Matrix4x4 pitch = Matrix4x4 (
+            1, 0, 0, 0,
+            0, cosPhi, -sinPhi, 0,
+            0, sinPhi, cosPhi, 0,
+            0, 0, 0, 1
+         );
+
+         Matrix4x4 yaw = Matrix4x4 (
+            cosTheta, 0, sinTheta, 0,
+            0, 1, 0, 0,
+            -sinTheta, 0, cosTheta, 0,
+            0, 0, 0, 1
+         );
+
+         return yaw * pitch;
+      }
+
+      Matrix4x4 transform() {
+         return translate() * vectorTransform();
+      }
+
 };
 
 Camera::Camera(Vector3 &eye, Vector3 &up, Vector3 &right, Vector3 &lookAt) {
