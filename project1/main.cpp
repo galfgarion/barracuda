@@ -199,7 +199,8 @@ Color raycast(const Ray & ray, const vector<GeomObject*>& objects, const vector<
             double specFactor = closestObj->finish.specular;
             assert(specFactor >= 0);
             double roughness = closestObj->finish.roughness;
-            Color specular = lights[l]->color * specFactor * pow((N * h), 1 / roughness);
+            specFactor = max(0.0, specFactor * pow((N * h), 1 / roughness));
+            Color specular = lights[l]->color * specFactor;
             localShading = localShading + specular;
          }
 
@@ -241,7 +242,7 @@ Color raycast(const Ray & ray, const vector<GeomObject*>& objects, const vector<
 
 
       if(closestObj->finish.refraction == 1 && !tir) {
-         double local = 1 - filter - reflect;
+         double local = max(0.0, 1 - filter - reflect);
          assert(local >= 0);
          totalShading = localShading * local + reflectionShading * reflect
             + refractionShading * filter;

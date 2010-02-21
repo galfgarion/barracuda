@@ -3,6 +3,9 @@ default: simplerecurse2
 simplerecurse2: compile
 	./raytracer +W640 +H480 +Irecurse_simp2.pov
 
+marble2: compile
+	./raytracer +W640 +H480 +Imarble2.pov
+
 compile:
 	g++ -g -o raytracer main.cpp vector3.cpp
 
