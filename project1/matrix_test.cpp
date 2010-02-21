@@ -1,6 +1,7 @@
 #include "matrix4x4.h"
 #include <iostream>
 #include <assert.h>
+#include <math.h>
 
 using namespace std;
 
@@ -53,5 +54,41 @@ int main(void) {
 
    C = I * C;
    cout << "I * C: " << C.c_str() << endl; 
+
+   double scaleVec [4][4] = { {2, 0, 0, 0},
+                              {0, 0.5, 0, 0},
+                              {0, 0, 3, 0},
+                              {0, 0, 0, 1}
+                            };
+   Matrix4x4 scaleMatrix = Matrix4x4(scaleVec);
+   cout << "Scale matrix: " << scaleMatrix.c_str() << endl;
+   cout << "Inverse scale matrix: " << scaleMatrix.inverse().c_str() << endl;
+
+   Matrix4x4 transMatrix = Matrix4x4( 1, 0, 0, 1,
+                                      0, 1, 0, -3,
+                                      0, 0, 1, 2,
+                                      0, 0, 0, 1 );
+
+   cout << "Translation matrix: " << transMatrix.c_str() << endl;
+   cout << "Inverse trans matrix: " << transMatrix.inverse().c_str() << endl;
+
+   // rotate 90 degrees around y axis
+   double rotVec [4][4] = { 
+                              {0, 0, 1, 0},
+                              {0, 1, 0, 0},
+                              {-1, 0, 0, 0},
+                              {0, 0, 0, 1}
+                          };
+
+   Matrix4x4 rotMatrix = Matrix4x4(rotVec);
+   cout << "Rotation matrix: " << rotMatrix.c_str() << endl;
+   cout << "Inverse rotation matrix: " << rotMatrix.inverse().c_str() << endl;
+
+
+   // composit matrix
+   Matrix4x4 M = (scaleMatrix * rotMatrix) * transMatrix;
+   cout << "Composite matrix: " << M.c_str() << endl;
+   cout << "Inverse composite matrix: " << M.inverse().c_str() << endl;
+   cout << "Composite times its inverse: " << (M * M.inverse()).c_str() << endl;
 
 }

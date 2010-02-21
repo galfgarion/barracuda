@@ -6,6 +6,10 @@ class Matrix4x4 {
       double m [4][4];
       Matrix4x4();
       Matrix4x4(double[4][4]);
+      Matrix4x4(double, double, double, double,
+                double, double, double, double,
+                double, double, double, double,
+                double, double, double, double);
       const char * c_str();
       double determinant();
       Matrix4x4 inverse();
