@@ -36,6 +36,7 @@ extern Vector3 operator-(const Vector3& a, const Vector3& b);
 extern double operator*(const Vector3& a, const Vector3& b);
 extern Vector3 operator*(const Vector3& a, double b);
 extern Vector3 operator*(const double b, const Vector3& a);
+extern bool operator==(const Vector3&a, const Vector3& b);
 /*
    ostream& operator<<(ostream& out, const Vector3& v) {
       out << "<" << v.x << ", " << v.y << ", " << v.z << ">";
