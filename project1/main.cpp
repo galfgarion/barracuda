@@ -18,6 +18,8 @@
 #include "geom.h"
 #include "light.h"
 
+#include <GL/glut.h>
+
 #define RECURSION_DEPTH 3
 
 using namespace std;
@@ -29,6 +31,8 @@ typedef struct image_t {
 int gPixelWidth = 128;
 int gPixelHeight = 96;
 string gInputFileName ("");
+Color **gImage;
+ByteColor *pixelBuffer;
 
 bool shadowsOff = false;
 #ifndef EPSILON
@@ -73,33 +77,39 @@ Vector3 refract(Vector3 d, Vector3 n, double iorIn, double iorOut, bool * tir) {
    return (iorRatio * (d - n*(d * n)) - n*sqrt(underRoot)).normalize();
 }
 
+void initialize() {
+   //vector< vector<Color> > image(gPixelWidth, vector<Color>(gPixelHeight));
+   //
+   cout << "Initializing..." << endl;
 
-
-int main(int argc, char **argv) {
-
-   parse_args(argc - 1, (const char **)(argv + 1));
-
-   if(gPixelWidth <= 0 || gPixelHeight <= 0 || gInputFileName.compare(string("")) == 0) {
-      printf("Usage: %s +W<int> +H<int> +I<pov input file>\n", argv[0]);
-      exit(-1);
+   gImage = new Color*[gPixelWidth];
+   for(int i=0; i < gPixelWidth; i++) {
+      gImage[i] = new Color[gPixelHeight];
    }
 
-   printf("Valid args accepted\n");
-   printf("Width: %d\n", gPixelWidth);
-   printf("Height: %d\n", gPixelHeight);
-   printf("Input file: %s\n", gInputFileName.c_str());
-
-   /* allocate the image */
-   vector< vector<Color> > image(gPixelWidth, vector<Color>(gPixelHeight));
+   pixelBuffer = new ByteColor[gPixelWidth * gPixelHeight];
    
    /* clear the colors */
    for(int x = 0; x < gPixelWidth; x++) {
       for(int y=0; y < gPixelHeight; y++) {
-         image[x][y].r = 0;
-         image[x][y].g = 0;
-         image[x][y].b = 0;
+         gImage[x][y].r = 0;
+         gImage[x][y].g = 0;
+         gImage[x][y].b = 0;
       }
    }
+
+   for(int i=0; i < gPixelWidth * gPixelHeight; i++) {
+      pixelBuffer[i].r = 0;
+      pixelBuffer[i].g = 0;
+      pixelBuffer[i].b = 0;
+   }
+
+   cout << "... done initializing." << endl;
+}
+
+void render(void) {
+
+   cout << "Rendering ..." << endl;
 
    vector<GeomObject*> objects;
    vector<Light*> lights;
@@ -125,12 +135,101 @@ int main(int argc, char **argv) {
 
          ray.direction = cameraVectorTransform * camera.pixelToScreen(x, y);
 
-         image[x][y] = raycast(ray, objects, lights, RECURSION_DEPTH);
+         gImage[x][y] = raycast(ray, objects, lights, RECURSION_DEPTH);
       }
    }
 
-   draw_image(image);
+   //draw_image(image);
+   cout << "... done rendering." << endl;
+
+   // export to pixel buffer
+   for(int x=0; x < gPixelWidth; x++) {
+      for(int y=0; y < gPixelHeight; y++) {
+         int index = (gPixelHeight - y - 1) * gPixelWidth + x;
+         pixelBuffer[index].r = gImage[x][y].r * 255.0;
+         pixelBuffer[index].g = gImage[x][y].g * 255.0;
+         pixelBuffer[index].b = gImage[x][y].b * 255.0;
+      }
+   }
+}
+
+void display (void) {
+/*
+   // this code executes whenever the window is redrawn (when opened,
+   //   moved, resized, etc.
+   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+   // set the viewing transform
+   setUpView();
+
+   // set up light source
+   setUpLight();
+
+   // start drawing objects
+   setUpModelTransform();
+
+   if (trackballMove) {
+      glPushMatrix();
+      glLoadIdentity();
+      glRotatef(angle, axis[0], axis[1], axis[2]);
+      glMultMatrixf((GLfloat *) trackballXform);
+      glGetFloatv(GL_MODELVIEW_MATRIX, trackballXform);
+      glPopMatrix();
+   }
+   glPushMatrix();
+   glMultMatrixf((GLfloat *) objectXform);
+   drawControlPoints();
+   //drawSphere();
+   //drawCube();
+   //drawText();
+   drawTriangle(1, t1Translate);
+   drawTriangle(1, t2Translate);
+   drawTriangle(1, t3Translate);
+   glPopMatrix();
+*/
+/* allocate the image */
+   glDrawPixels(gPixelWidth, gPixelHeight, GL_RGB, GL_UNSIGNED_BYTE, pixelBuffer);
+
+   glutSwapBuffers();
+}
+
+int main(int argc, char **argv) {
+
+   parse_args(argc - 1, (const char **)(argv + 1));
+
+   if(gPixelWidth <= 0 || gPixelHeight <= 0 || gInputFileName.compare(string("")) == 0) {
+      printf("Usage: %s +W<int> +H<int> +I<pov input file>\n", argv[0]);
+      exit(-1);
+   }
+
+   printf("Valid args accepted\n");
+   printf("Width: %d\n", gPixelWidth);
+   printf("Height: %d\n", gPixelHeight);
+   printf("Input file: %s\n", gInputFileName.c_str());
    
+   glutInit(&argc, argv);
+   glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
+   glutInitWindowSize(640, 480);
+   glutInitWindowPosition(100, 100);
+   glutCreateWindow("3D Ray Tracer");
+   printf("Interaction directions:\n\nLeft mouse button: hold down and drag to change orientation\n");
+   printf("Middle mouse button: hold down and drag to shift horizontally or vertically\n");
+   printf("Right mouse button: hold down and drag vertically to move in and out of the screen\n");
+    
+   glEnable(GL_DEPTH_TEST);
+   glutDisplayFunc(display);
+   //glutReshapeFunc(reshapeCallback);
+   //glutKeyboardFunc(keyCallback);
+   //glutMouseFunc(mouseCallback);
+   //glutMotionFunc(mouseMotion);
+   //glutTimerFunc(50,timeStep, 0);  // 50 millisecond callback
+   
+   initialize();
+   render();
+
+   glutMainLoop();
+
+
    return 0;
 }
 
@@ -357,7 +456,7 @@ void draw_image(vector< vector<Color> > image) {
 
    cout << "Output filename: " << outputFileName << endl;
 
-   /* o	pen file */
+   /* open file */
    FILE * outputFile = fopen(outputFileName.c_str(), "w");
    if(NULL == outputFile) {
       perror("draw_image()");

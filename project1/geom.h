@@ -407,8 +407,15 @@ class Camera {
          Vector3 w = (eye - lookAt).normalize();
          cout << "w: " << w.c_str() << endl;
          Vector3 u = up.cross(w).normalize(); 
-         Vector3 v = w.cross(u);
+         Vector3 v = w.cross(u).normalize();
          cout << "v: " << v.c_str() << endl;
+
+         cout << "u * v = " << u * v << endl;
+         cout << "w * v = " << w * v << endl;
+
+         assert(fabs(u * v) < 0.00000001);
+         assert(fabs(w * v) < 0.00000001);
+         assert(fabs(w * u) < 0.00000001);
 
          cout << "u: " << v.cross(w).c_str() << endl;
 
