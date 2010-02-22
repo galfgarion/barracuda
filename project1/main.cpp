@@ -27,12 +27,19 @@ using namespace std;
 typedef struct image_t {
 } Image;
 
+// mouse controls
+bool zoomState = false;
+bool shiftState = false;
+
 // globals
 int gPixelWidth = 128;
 int gPixelHeight = 96;
 string gInputFileName ("");
 Color **gImage;
 ByteColor *pixelBuffer;
+Camera camera;
+vector<GeomObject*> objects;
+vector<Light*> lights;
 
 bool shadowsOff = false;
 #ifndef EPSILON
@@ -44,6 +51,8 @@ void parse_args(int argc, const char **argv);
 void draw_image(vector< vector<Color> > image);
 void parse_file(vector<GeomObject*> & objects, vector<Light*> & lights, Camera * camera);
 Color raycast(const Ray & ray, const vector<GeomObject*>& objects, const vector<Light*>& lights, int depth);
+void render();
+void display (void);
 
 
 // incoming ray, vector n on the surface at point p where it hit
@@ -77,6 +86,115 @@ Vector3 refract(Vector3 d, Vector3 n, double iorIn, double iorOut, bool * tir) {
    return (iorRatio * (d - n*(d * n)) - n*sqrt(underRoot)).normalize();
 }
 
+
+static float lastPos[3] = {0.0, 0.0, 0.0};
+
+void mouseMotion(int x, int y) {
+
+   float curPos[3], dx, dy, dz;
+
+   if (zoomState == false && shiftState == false) {
+    /*
+
+      trackball_ptov(x, y, gPixelWidth, gPixelHeight, curPos);
+
+      dx = curPos[0] - lastPos[0];
+      dy = curPos[1] - lastPos[1];
+      dz = curPos[2] - lastPos[2];
+
+      if (dx||dy||dz) {
+         angle = 90.0 * sqrt(dx*dx + dy*dy + dz*dz);
+
+         axis[0] = lastPos[1]*curPos[2] - lastPos[2]*curPos[1];
+         axis[1] = lastPos[2]*curPos[0] - lastPos[0]*curPos[2];
+         axis[2] = lastPos[0]*curPos[1] - lastPos[1]*curPos[0];
+
+         lastPos[0] = curPos[0];
+         lastPos[1] = curPos[1];
+         lastPos[2] = curPos[2];
+      }
+    */
+
+   }
+   else if (zoomState == true) {
+      curPos[1] = y;
+      dy = curPos[1] - lastPos[1];
+
+      if (dy) {
+         camera.eye.z += dy * 0.01;
+         lastPos[1] = curPos[1];
+      }
+   }
+   else if (shiftState == true) {
+      curPos[0] = x; 
+      curPos[1] = y;
+      dx = curPos[0] - lastPos[0];
+      dy = curPos[1] - lastPos[1];
+
+      if (dx) {
+         camera.eye.x += dx * 0.01;
+         lastPos[0] = curPos[0];
+      }
+      if (dy) {
+         camera.eye.y -= dy * 0.01;
+         lastPos[1] = curPos[1];
+      }
+   }
+
+   //render();
+   glutPostRedisplay( );
+
+}
+
+void mouseCallback(int button, int state, int x, int y) {
+   static Vector3 prevPosition;
+
+   switch (button) {
+      case GLUT_LEFT_BUTTON:
+         //trackballXform = (GLfloat *)objectXform;
+         break;
+      case GLUT_RIGHT_BUTTON:
+      case GLUT_MIDDLE_BUTTON:
+         prevPosition = Vector3(x, y, -1);
+         //trackballXform = (GLfloat *)lightXform;
+         break;
+   }
+   switch (state) {
+      case GLUT_DOWN:
+         if (button == GLUT_LEFT_BUTTON) {
+            cout << "Posting redisplay" << endl;
+            glutPostRedisplay();
+         }
+         if (button == GLUT_RIGHT_BUTTON) {
+            zoomState = true;
+            lastPos[1] = y;
+         }
+         else if (button == GLUT_MIDDLE_BUTTON) {
+            shiftState = true;
+            lastPos[0] = x;
+            lastPos[1] = y;
+         }
+         //else startMotion(0, 1, x, y);
+         break;
+      case GLUT_UP:
+         //trackballXform = (GLfloat *)lightXform; // turns off mouse effects
+         if (button == GLUT_RIGHT_BUTTON) {
+            zoomState = false;
+         }
+         else if (button == GLUT_MIDDLE_BUTTON) {
+            shiftState = false;
+            Vector3 motion = camera.pixelToScreen(x, y) - prevPosition;
+            camera.eye = camera.eye + (motion * 0.001);
+            render();
+            glutPostRedisplay();
+         }
+         //else stopMotion(0, 1, x, y);
+         break;
+   }
+
+    cout << "Mouse: (" << x << "," << y << ")" << endl;
+}
+
 void initialize() {
    //vector< vector<Color> > image(gPixelWidth, vector<Color>(gPixelHeight));
    //
@@ -104,18 +222,14 @@ void initialize() {
       pixelBuffer[i].b = 0;
    }
 
+   parse_file(objects, lights, &camera);
+
    cout << "... done initializing." << endl;
 }
 
 void render(void) {
 
    cout << "Rendering ..." << endl;
-
-   vector<GeomObject*> objects;
-   vector<Light*> lights;
-   Camera camera;
-   
-   parse_file(objects, lights, &camera);
 
    Matrix4x4 cameraTransform = camera.transform();
    Matrix4x4 cameraVectorTransform = camera.vectorTransform();
@@ -188,6 +302,9 @@ void display (void) {
    glPopMatrix();
 */
 /* allocate the image */
+
+   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
    glDrawPixels(gPixelWidth, gPixelHeight, GL_RGB, GL_UNSIGNED_BYTE, pixelBuffer);
 
    glutSwapBuffers();
@@ -220,8 +337,8 @@ int main(int argc, char **argv) {
    glutDisplayFunc(display);
    //glutReshapeFunc(reshapeCallback);
    //glutKeyboardFunc(keyCallback);
-   //glutMouseFunc(mouseCallback);
-   //glutMotionFunc(mouseMotion);
+   glutMouseFunc(mouseCallback);
+   glutMotionFunc(mouseMotion);
    //glutTimerFunc(50,timeStep, 0);  // 50 millisecond callback
    
    initialize();
