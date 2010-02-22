@@ -326,7 +326,7 @@ int main(int argc, char **argv) {
    
    glutInit(&argc, argv);
    glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
-   glutInitWindowSize(640, 480);
+   glutInitWindowSize(gPixelWidth, gPixelHeight);
    glutInitWindowPosition(100, 100);
    glutCreateWindow("3D Ray Tracer");
    printf("Interaction directions:\n\nLeft mouse button: hold down and drag to change orientation\n");
@@ -515,7 +515,7 @@ void parse_file(vector<GeomObject*> & objects, vector<Light*> & lights, Camera *
    while( tokens.size() > 0) {
       if(!tokens.front().compare("camera")) {
          cout << "parsing camera" << endl;
-         *camera = Camera::parse(tokens);
+         *camera = Camera::parse(tokens, gPixelWidth, gPixelHeight);
       }
       else if(!tokens.front().compare("sphere")) {
          cout << "parsing sphere" << endl;

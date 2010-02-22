@@ -16,7 +16,7 @@ both2: simplecam2 povray2
 make simplecam: simplecam0 simplecam1 simplecam2 simplecam3
 
 simplecam0: compile
-	./raytracer +W640 +H480 +Isimp_cam0.pov
+	./raytracer +W320 +H240 +Isimp_cam0.pov
 simplecam1: compile
 	./raytracer +W640 +H480 +Isimp_cam1.pov
 simplecam2: compile

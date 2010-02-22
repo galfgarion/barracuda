@@ -351,11 +351,13 @@ double Sphere::intersect(const Ray & ray) {
 class Camera {
    public:
       Camera() {}
-      Camera(Vector3& eye, Vector3& up, Vector3& right, Vector3& lookAt); 
+      Camera(Vector3& eye, Vector3& up, Vector3& right, Vector3& lookAt,
+         int xRes, int yRes); 
       Vector3 eye, up, right, lookAt;
+      int xRes, yRes;
       Vector3 pixelToScreen(int x, int y);
 
-      static Camera parse(deque<string> & tokens) {
+      static Camera parse(deque<string> & tokens, int xRes, int yRes) {
          unsigned int tokensLeft = 17; // expected num of tokens in camera
 
          Vector3 eye, up, right, lookAt;
@@ -386,7 +388,7 @@ class Camera {
             }
          }
 
-         return Camera(eye, up, right, lookAt);
+         return Camera(eye, up, right, lookAt, xRes, yRes);
       }
 
       Matrix4x4 translate() {
@@ -471,15 +473,13 @@ class Camera {
       double pixelToScreenX(int x) {
          double screenWidth = right.magnitude();
          double left = -(right.magnitude() / 2.0);
-         //TODO HACK assume 640 x 480
-         double wPixels = 640;
+         double wPixels = double(xRes);
 
          return left + screenWidth * (x + 0.5) / (wPixels - 1);
       }
 
       double pixelToScreenY(int y) {
-         //TODO HACK assume 640 x 480
-         double hPixels = 480;
+         double hPixels = double(yRes);
          double screenHeight = up.magnitude();
          double top = screenHeight / 2.0;
 
@@ -492,11 +492,14 @@ Vector3 Camera::pixelToScreen(int x, int y) {
    return Vector3(pixelToScreenX(x), pixelToScreenY(y), -1);
 }
 
-Camera::Camera(Vector3 &eye, Vector3 &up, Vector3 &right, Vector3 &lookAt) {
+Camera::Camera(Vector3 &eye, Vector3 &up, Vector3 &right, Vector3 &lookAt,
+   int xRes, int yRes) {
    this->eye = eye;
    this->up = up;
    this ->right = right;
    this->lookAt = lookAt;
+   this->xRes = xRes;
+   this->yRes = yRes;
 }
 
 
