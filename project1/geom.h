@@ -353,7 +353,7 @@ class Camera {
       Camera() {}
       Camera(Vector3& eye, Vector3& up, Vector3& right, Vector3& lookAt); 
       Vector3 eye, up, right, lookAt;
-      Vector3 pixelToWorld(int x, int y);
+      Vector3 pixelToScreen(int x, int y);
 
       static Camera parse(deque<string> & tokens) {
          unsigned int tokensLeft = 17; // expected num of tokens in camera
@@ -399,42 +399,66 @@ class Camera {
       }
 
       Matrix4x4 vectorTransform() {
-         // making certain assumptions
-         // up vector is assumed to always be <0, 1, 0>
 
-         // phi is pitch, theta is yaw
-         Vector3 lookVec = (lookAt - eye).normalize();
-         // proj onto x-z axis
-         Vector3 lookProj = Vector3(lookVec.x, 0, lookVec.z).normalize();
-         //cout << "lookVec: " << lookVec.c_str() << endl;
-         //cout << "lookProj: " << lookProj.c_str() << endl;
-         double cosPhi = lookVec * lookProj;
-         double sinPhi = sqrt(1 - cosPhi*cosPhi);
-         Vector3 downZaxis = Vector3(0, 0, -1);
-         double cosTheta = lookProj * downZaxis;
-         double sinTheta = sqrt(1 - cosTheta*cosTheta);
+         Vector3 x(1, 0, 0);
+         Vector3 y(0, 1, 0);
+         Vector3 z(0, 0, 1);
 
-         //cout << "cos(theta) = " << cosTheta << endl;
+         Vector3 w = (eye - lookAt).normalize();
+         cout << "w: " << w.c_str() << endl;
+         Vector3 u = up.cross(w).normalize(); 
+         Vector3 v = w.cross(u);
+         cout << "v: " << v.c_str() << endl;
 
-         Matrix4x4 pitch = Matrix4x4 (
+         cout << "u: " << v.cross(w).c_str() << endl;
+
+         // project v onto x-y plane
+         Vector3 vPrime = Vector3(v.x, v.y, 0).normalize();
+         double cosThetaZ = vPrime * y;
+         double sinThetaZ = sqrt(1 - cosThetaZ*cosThetaZ);
+
+         Matrix4x4 RotZ = Matrix4x4 (
+            cosThetaZ, -sinThetaZ, 0, 0,
+            sinThetaZ, cosThetaZ, 0, 0,
+            0, 0, 1, 0,
+            0, 0, 0, 1
+         );
+
+         cout << "RotZ: " << RotZ.c_str() << endl;
+
+         Matrix4x4 RotZInv = RotZ.inverse();
+
+         double cosThetaX = (RotZInv * v) * y;
+         double sinThetaX = sqrt(1 - cosThetaX*cosThetaX);
+
+         Matrix4x4 RotX = Matrix4x4 (
             1, 0, 0, 0,
-            0, cosPhi, -sinPhi, 0,
-            0, sinPhi, cosPhi, 0,
+            0, cosThetaX, -sinThetaX, 0,
+            0, sinThetaX, cosThetaX, 0,
             0, 0, 0, 1
          );
 
-         Matrix4x4 yaw = Matrix4x4 (
-            cosTheta, 0, sinTheta, 0,
+         cout << "RotX: " << RotX.c_str() << endl;
+
+         Matrix4x4 RotXInv = RotX.inverse();
+
+         double cosThetaY = (RotXInv * (RotZInv * w)) * z;
+         double sinThetaY = sqrt(1 - cosThetaY*cosThetaY);
+
+         Matrix4x4 RotY = Matrix4x4 (
+            cosThetaY, 0, sinThetaY, 0,
             0, 1, 0, 0,
-            -sinTheta, 0, cosTheta, 0,
+            -sinThetaY, 0, cosThetaY, 0,
             0, 0, 0, 1
          );
 
-         return yaw * pitch;
+         cout << "RotY: " << RotY.c_str() << endl;
+
+         return RotZ * (RotX * RotY);
       }
 
       Matrix4x4 transform() {
-         return  translate() * vectorTransform();
+         return  vectorTransform() * translate();
       }
 
       double pixelToScreenX(int x) {
@@ -457,9 +481,8 @@ class Camera {
 
 };
 
-Vector3 Camera::pixelToWorld(int x, int y) {
-   Vector3 screenVec = Vector3(pixelToScreenX(x), pixelToScreenY(y), 1);
-   return transform() * screenVec;
+Vector3 Camera::pixelToScreen(int x, int y) {
+   return Vector3(pixelToScreenX(x), pixelToScreenY(y), -1);
 }
 
 Camera::Camera(Vector3 &eye, Vector3 &up, Vector3 &right, Vector3 &lookAt) {

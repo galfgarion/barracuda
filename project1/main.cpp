@@ -109,21 +109,21 @@ int main(int argc, char **argv) {
 
    Matrix4x4 cameraTransform = camera.transform();
    Matrix4x4 cameraVectorTransform = camera.vectorTransform();
-   Vector3 eye = camera.eye;
 
-   cout << "Eye: " << eye.c_str() << endl;
+   cout << "Eye: " << camera.eye.c_str() << endl;
    cout << "Camera transform: " << cameraTransform.c_str() << endl;
+   cout << "LookAt: " << camera.lookAt.c_str() << endl;
 
    /* clear the colors */
    for(int x = 0; x < gPixelWidth; x++) {
       for(int y = 0; y < gPixelHeight; y++) {
 
          Ray ray;
-         ray.origin = eye;
+         ray.origin = camera.eye;
 
          //cout << "ray.origin: <" << ray.origin.x << "," << ray.origin.y << "," << ray.origin.z << ">" << endl;
 
-         ray.direction = (camera.pixelToWorld(x, y) - eye).normalize();
+         ray.direction = cameraVectorTransform * camera.pixelToScreen(x, y);
 
          image[x][y] = raycast(ray, objects, lights, RECURSION_DEPTH);
       }

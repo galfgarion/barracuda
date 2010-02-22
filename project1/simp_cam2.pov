@@ -18,7 +18,7 @@
 
 //camera pointing down negative x - case 2
 camera {
-location  <14, 3, 0> 
+location  <14, 2, 0> 
 up        <0,  1,  0>
 right     <0, 0,  -1.3333>
 look_at   <0, 0, 0>
