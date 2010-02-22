@@ -434,6 +434,7 @@ class Camera {
          );
 
          cout << "RotZ: " << RotZ.c_str() << endl;
+         assert(RotZ * z == z);
 
          Matrix4x4 RotZInv = RotZ.inverse();
 
@@ -448,6 +449,7 @@ class Camera {
          );
 
          cout << "RotX: " << RotX.c_str() << endl;
+         assert(RotX * x == x);
 
          Matrix4x4 RotXInv = RotX.inverse();
 
@@ -462,6 +464,7 @@ class Camera {
          );
 
          cout << "RotY: " << RotY.c_str() << endl;
+         assert(RotY * y == y);
 
          return RotZ * (RotX * RotY);
       }
