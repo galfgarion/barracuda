@@ -422,9 +422,13 @@ class Camera {
          cout << "u: " << v.cross(w).c_str() << endl;
 
          // project v onto x-y plane
+         // rotate such that v is in the y-z plane
          Vector3 vPrime = Vector3(v.x, v.y, 0).normalize();
          double cosThetaZ = vPrime * y;
          double sinThetaZ = sqrt(1 - cosThetaZ*cosThetaZ);
+         if(v.x > 0) {
+            sinThetaZ = -sinThetaZ;
+         }
 
          Matrix4x4 RotZ = Matrix4x4 (
             cosThetaZ, -sinThetaZ, 0, 0,
@@ -438,8 +442,13 @@ class Camera {
 
          Matrix4x4 RotZInv = RotZ.inverse();
 
-         double cosThetaX = (RotZInv * v) * y;
+         // rotate such that vPrime is in x-y
+         vPrime = RotZInv * v;
+         double cosThetaX = vPrime * y;
          double sinThetaX = sqrt(1 - cosThetaX*cosThetaX);
+         if(vPrime.z < 0) {
+            sinThetaX = -sinThetaX;
+         }
 
          Matrix4x4 RotX = Matrix4x4 (
             1, 0, 0, 0,
@@ -453,8 +462,13 @@ class Camera {
 
          Matrix4x4 RotXInv = RotX.inverse();
 
-         double cosThetaY = (RotXInv * (RotZInv * w)) * z;
+         Vector3 wPrime = (RotXInv * (RotZInv * w));
+         double cosThetaY = wPrime * z;
          double sinThetaY = sqrt(1 - cosThetaY*cosThetaY);
+         if(wPrime.x < 0) {
+            sinThetaY = -sinThetaY;
+         }
+
 
          Matrix4x4 RotY = Matrix4x4 (
             cosThetaY, 0, sinThetaY, 0,
