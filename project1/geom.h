@@ -353,6 +353,7 @@ class Camera {
       Camera() {}
       Camera(Vector3& eye, Vector3& up, Vector3& right, Vector3& lookAt); 
       Vector3 eye, up, right, lookAt;
+      Vector3 pixelToWorld(int x, int y);
 
       static Camera parse(deque<string> & tokens) {
          unsigned int tokensLeft = 17; // expected num of tokens in camera
@@ -405,15 +406,15 @@ class Camera {
          Vector3 lookVec = (lookAt - eye).normalize();
          // proj onto x-z axis
          Vector3 lookProj = Vector3(lookVec.x, 0, lookVec.z).normalize();
-         cout << "lookVec: " << lookVec.c_str() << endl;
-         cout << "lookProj: " << lookProj.c_str() << endl;
+         //cout << "lookVec: " << lookVec.c_str() << endl;
+         //cout << "lookProj: " << lookProj.c_str() << endl;
          double cosPhi = lookVec * lookProj;
          double sinPhi = sqrt(1 - cosPhi*cosPhi);
          Vector3 downZaxis = Vector3(0, 0, -1);
          double cosTheta = lookProj * downZaxis;
          double sinTheta = sqrt(1 - cosTheta*cosTheta);
 
-         cout << "cos(theta) = " << cosTheta << endl;
+         //cout << "cos(theta) = " << cosTheta << endl;
 
          Matrix4x4 pitch = Matrix4x4 (
             1, 0, 0, 0,
@@ -433,10 +434,33 @@ class Camera {
       }
 
       Matrix4x4 transform() {
-         return translate() * vectorTransform();
+         return  translate() * vectorTransform();
+      }
+
+      double pixelToScreenX(int x) {
+         double screenWidth = right.magnitude();
+         double left = -(right.magnitude() / 2.0);
+         //TODO HACK assume 640 x 480
+         double wPixels = 640;
+
+         return left + screenWidth * (x + 0.5) / (wPixels - 1);
+      }
+
+      double pixelToScreenY(int y) {
+         //TODO HACK assume 640 x 480
+         double hPixels = 480;
+         double screenHeight = up.magnitude();
+         double top = screenHeight / 2.0;
+
+         return top - screenHeight * (y + 0.5) / (hPixels - 1);
       }
 
 };
+
+Vector3 Camera::pixelToWorld(int x, int y) {
+   Vector3 screenVec = Vector3(pixelToScreenX(x), pixelToScreenY(y), 1);
+   return transform() * screenVec;
+}
 
 Camera::Camera(Vector3 &eye, Vector3 &up, Vector3 &right, Vector3 &lookAt) {
    this->eye = eye;
@@ -444,5 +468,7 @@ Camera::Camera(Vector3 &eye, Vector3 &up, Vector3 &right, Vector3 &lookAt) {
    this ->right = right;
    this->lookAt = lookAt;
 }
+
+
 
 #endif

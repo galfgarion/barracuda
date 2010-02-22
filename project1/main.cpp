@@ -107,25 +107,23 @@ int main(int argc, char **argv) {
    
    parse_file(objects, lights, &camera);
 
-   Screen screen = Screen(gPixelWidth, gPixelHeight, camera.eye, -camera.right.magnitude() / 2.0,
-      camera.right.magnitude() / 2.0, camera.up.magnitude() / 2.0, -camera.up.magnitude() / 2.0);
-
    Matrix4x4 cameraTransform = camera.transform();
    Matrix4x4 cameraVectorTransform = camera.vectorTransform();
+   Vector3 eye = camera.eye;
+
+   cout << "Eye: " << eye.c_str() << endl;
+   cout << "Camera transform: " << cameraTransform.c_str() << endl;
+
    /* clear the colors */
    for(int x = 0; x < gPixelWidth; x++) {
       for(int y = 0; y < gPixelHeight; y++) {
 
          Ray ray;
-         ray.origin = Vector3(0, 0, 1);
+         ray.origin = eye;
 
          //cout << "ray.origin: <" << ray.origin.x << "," << ray.origin.y << "," << ray.origin.z << ">" << endl;
 
-         ray.direction = (*screen.pixelToScreen(x, y) - ray.origin).normalize();
-         //ray.direction = (ray.origin - camera.eye);
-         //
-         ray.origin = camera.translate() * ray.origin;
-         ray.direction = cameraVectorTransform * ray.direction;
+         ray.direction = (camera.pixelToWorld(x, y) - eye).normalize();
 
          image[x][y] = raycast(ray, objects, lights, RECURSION_DEPTH);
       }
