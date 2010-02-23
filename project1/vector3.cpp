@@ -85,6 +85,10 @@
       return cstr;
    }
 
+   Vector3 Vector3::operator-() const {
+      return Vector3(-x, -y, -z);
+   }
+
    // For the following overloaded operator functions, see Stroustrup p. 231
 
    Vector3 operator+(const Vector3& a, const Vector3& b) {
