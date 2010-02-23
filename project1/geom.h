@@ -28,7 +28,7 @@ typedef struct s_ray {
 typedef struct finish_t {
    double ambient, diffuse, specular, roughness;
    double ior, reflection, refraction, filter;
-   finish_t() : ambient(0), diffuse(0), specular(0), roughness(0),
+   finish_t() : ambient(0), diffuse(0), specular(0), roughness(0.05),
       ior(1), reflection(0), refraction(0), filter(0) {}
 } Finish;
 
@@ -119,6 +119,7 @@ class Sphere: public GeomObject {
 
 class Plane: public GeomObject {
    public:
+      Plane() {}
       Plane(Vector3& normal, double d);
       Plane(deque<string> & tokens);
       double intersect(const Ray & ray);
@@ -126,7 +127,7 @@ class Plane: public GeomObject {
 
    private:
       Vector3 _normal;
-      double _d;
+      Point p0;
 };
 
 class Triangle: public GeomObject {
@@ -219,7 +220,7 @@ Vector3 Plane::surfaceNormal(const Point &p) {
 
 Plane::Plane(Vector3& normal, double d) {
    _normal = normal;
-   _d = d;
+   p0 = d * _normal;
 }
 
 Triangle::Triangle(deque<string> & tokens) {
@@ -265,23 +266,23 @@ Plane::Plane(deque<string> & tokens) {
    tokens.pop_front();
 
    _normal = Parser::parse_vector(tokens);
-   _d = Parser::parse_double(tokens.front());
+   double d = Parser::parse_double(tokens.front());
+   p0 = d * _normal;
    tokens.pop_front();
 
-   cout << "parsed plane with normal " << _normal.c_str() << " and d " << _d << endl;
+   cout << "parsed plane with normal " << _normal.c_str() << " and d " << d << endl;
    
    parseOptions(tokens);
 }
 
 double Plane::intersect(const Ray & ray) {
-   Vector3 p1 = _normal * _d;
    double denom = ray.direction * _normal;
 
    if(denom == 0) {
       return -1.0;
    }
 
-   double numerator = (p1 - ray.origin) * _normal;
+   double numerator = (p0 - ray.origin) * _normal;
    double dist = numerator / denom;
    if(dist < EPSILON) {
       return -1;
@@ -347,6 +348,109 @@ double Sphere::intersect(const Ray & ray) {
    }
 }
 
+#define ZMIN 0
+#define ZMAX 1
+#define XMIN 2
+#define XMAX 3
+#define YMAX 4
+#define YMIN 5
 
+class Box : public GeomObject {
+   double xMin, xMax, yMin, yMax, zMin, zMax;
+   public:
+      Box(double, double, double, double, double, double);
+      double intersect(const Ray& ray);
+      Vector3 surfaceNormal(const Point& p);
+};
+
+Vector3 Box::surfaceNormal(const Point& p) {
+   if(fabs(p.x - xMin) < EPSILON) return Vector3(-1, 0, 0);
+   if(fabs(p.x - xMax) < EPSILON) return Vector3(1, 0, 0);
+   if(fabs(p.y - yMin) < EPSILON) return Vector3(0, -1, 0);
+   if(fabs(p.y - yMax) < EPSILON) return Vector3(0, 1, 0);
+   if(fabs(p.z - zMin) < EPSILON) return Vector3(0, 0, -1);
+   if(fabs(p.z - zMax) < EPSILON) return Vector3(0, 0, 1);
+
+   assert(false); //error if reached
+}
+
+Box::Box(double xMin, double xMax, double yMin, double yMax, double zMin, 
+   double zMax) {
+
+   this->xMin = xMin;
+   this->xMax = xMax;
+   this->yMin = yMin;
+   this->yMax = yMax;
+   this->zMin = zMin;
+   this->zMax = zMax;
+
+   // defaults for bounding box draw
+   Finish finish;
+   finish.specular = 0.5;
+   finish.diffuse = 0.5;
+   finish.filter = 0.5;
+   finish.refraction = 1;
+   finish.ior = 1;
+
+   this->color = Color(0, 1, 0);
+   this->finish = finish;
+}
+
+void swap(double *a, double *b) {
+   double tmp = *a;
+   *a = *b;
+   *b = tmp;
+}
+double Box::intersect(const Ray& ray) {
+   Vector3 x = Vector3(1, 0, 0);
+   Vector3 y = Vector3(0, 1, 0);
+   Vector3 z = Vector3(0, 0, 1);
+   Vector3 negx = Vector3(1, 0, 0);
+   Vector3 negy = Vector3(0, 1, 0);
+   Vector3 negz = Vector3(0, 0, 1);
+   
+   Plane planes[6];
+   planes[ZMIN] = Plane(negz, zMin);
+   planes[ZMAX] = Plane(z, zMax); // furthest away from viewer at origin
+   planes[XMIN] = Plane(negx, xMin);
+   planes[XMAX] = Plane(x, xMax);
+   planes[YMIN] = Plane(negy, yMin);
+   planes[YMAX] = Plane(y, yMax);
+
+   double d[6];
+
+   for(int i=0; i < 6; i++) {
+      d[i] = planes[i].intersect(ray);
+      if(d[i] > EPSILON) { 
+         Point p = ray.origin + d[i]*ray.direction;
+
+         if(i == ZMIN || i == ZMAX) {
+            if(p.x < xMin || p.x > xMax || p.y < yMin || p.y > yMax)
+               d[i] = -1;
+         }
+         else if(i == XMIN || i == XMAX) {
+            if(p.y < yMin || p.y > yMax || p.z < zMin || p.z > zMax)
+               d[i] = -1;
+         }
+         else if(i == YMIN || i == YMAX) {
+            if(p.x < xMin || p.x > xMax || p.z < zMin || p.z > zMax) {
+               d[i] = -1;
+            }
+         }
+      }
+   }
+
+   bool hit = false;
+   double t = numeric_limits<double>::max();
+
+   // find the smallest positive d if it exists
+   for(int i=0; i < 6; i++) {
+      if(d[i] > EPSILON && d[i] < t) {
+         t = d[i];
+      }
+   }
+
+   return t;
+}
 
 #endif
