@@ -17,6 +17,7 @@
 #include "screen.h"
 #include "geom.h"
 #include "light.h"
+#include "camera.h"
 
 #include <GL/glut.h>
 
