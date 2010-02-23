@@ -18,6 +18,8 @@
 #include "geom.h"
 #include "light.h"
 
+#include <GL/glut.h>
+
 #define RECURSION_DEPTH 3
 
 using namespace std;
@@ -25,10 +27,19 @@ using namespace std;
 typedef struct image_t {
 } Image;
 
+// mouse controls
+bool zoomState = false;
+bool shiftState = false;
+
 // globals
 int gPixelWidth = 128;
 int gPixelHeight = 96;
 string gInputFileName ("");
+Color **gImage;
+ByteColor *pixelBuffer;
+Camera camera;
+vector<GeomObject*> objects;
+vector<Light*> lights;
 
 bool shadowsOff = false;
 #ifndef EPSILON
@@ -40,6 +51,8 @@ void parse_args(int argc, const char **argv);
 void draw_image(vector< vector<Color> > image);
 void parse_file(vector<GeomObject*> & objects, vector<Light*> & lights, Camera * camera);
 Color raycast(const Ray & ray, const vector<GeomObject*>& objects, const vector<Light*>& lights, int depth);
+void render();
+void display (void);
 
 
 // incoming ray, vector n on the surface at point p where it hit
@@ -74,38 +87,149 @@ Vector3 refract(Vector3 d, Vector3 n, double iorIn, double iorOut, bool * tir) {
 }
 
 
+static float lastPos[3] = {0.0, 0.0, 0.0};
 
-int main(int argc, char **argv) {
+void mouseMotion(int x, int y) {
 
-   parse_args(argc - 1, (const char **)(argv + 1));
+   float curPos[3], dx, dy, dz;
 
-   if(gPixelWidth <= 0 || gPixelHeight <= 0 || gInputFileName.compare(string("")) == 0) {
-      printf("Usage: %s +W<int> +H<int> +I<pov input file>\n", argv[0]);
-      exit(-1);
+   if (zoomState == false && shiftState == false) {
+    /*
+
+      trackball_ptov(x, y, gPixelWidth, gPixelHeight, curPos);
+
+      dx = curPos[0] - lastPos[0];
+      dy = curPos[1] - lastPos[1];
+      dz = curPos[2] - lastPos[2];
+
+      if (dx||dy||dz) {
+         angle = 90.0 * sqrt(dx*dx + dy*dy + dz*dz);
+
+         axis[0] = lastPos[1]*curPos[2] - lastPos[2]*curPos[1];
+         axis[1] = lastPos[2]*curPos[0] - lastPos[0]*curPos[2];
+         axis[2] = lastPos[0]*curPos[1] - lastPos[1]*curPos[0];
+
+         lastPos[0] = curPos[0];
+         lastPos[1] = curPos[1];
+         lastPos[2] = curPos[2];
+      }
+    */
+
+   }
+   else if (zoomState == true) {
+      curPos[1] = y;
+      dy = curPos[1] - lastPos[1];
+
+      if (dy) {
+         camera.eye.z += dy * 0.01;
+         lastPos[1] = curPos[1];
+      }
+   }
+   else if (shiftState == true) {
+      curPos[0] = x; 
+      curPos[1] = y;
+      dx = curPos[0] - lastPos[0];
+      dy = curPos[1] - lastPos[1];
+
+      if (dx) {
+         camera.eye.x += dx * 0.01;
+         lastPos[0] = curPos[0];
+      }
+      if (dy) {
+         camera.eye.y -= dy * 0.01;
+         lastPos[1] = curPos[1];
+      }
    }
 
-   printf("Valid args accepted\n");
-   printf("Width: %d\n", gPixelWidth);
-   printf("Height: %d\n", gPixelHeight);
-   printf("Input file: %s\n", gInputFileName.c_str());
+   //render();
+   glutPostRedisplay( );
 
-   /* allocate the image */
-   vector< vector<Color> > image(gPixelWidth, vector<Color>(gPixelHeight));
+}
+
+void mouseCallback(int button, int state, int x, int y) {
+   static Vector3 prevPosition;
+
+   switch (button) {
+      case GLUT_LEFT_BUTTON:
+         //trackballXform = (GLfloat *)objectXform;
+         break;
+      case GLUT_RIGHT_BUTTON:
+      case GLUT_MIDDLE_BUTTON:
+         prevPosition = Vector3(x, y, -1);
+         //trackballXform = (GLfloat *)lightXform;
+         break;
+   }
+   switch (state) {
+      case GLUT_DOWN:
+         if (button == GLUT_LEFT_BUTTON) {
+            cout << "Posting redisplay" << endl;
+            glutPostRedisplay();
+         }
+         if (button == GLUT_RIGHT_BUTTON) {
+            zoomState = true;
+            lastPos[1] = y;
+         }
+         else if (button == GLUT_MIDDLE_BUTTON) {
+            shiftState = true;
+            lastPos[0] = x;
+            lastPos[1] = y;
+         }
+         //else startMotion(0, 1, x, y);
+         break;
+      case GLUT_UP:
+         //trackballXform = (GLfloat *)lightXform; // turns off mouse effects
+         if (button == GLUT_RIGHT_BUTTON) {
+            zoomState = false;
+         }
+         else if (button == GLUT_MIDDLE_BUTTON) {
+            shiftState = false;
+            Vector3 motion = camera.pixelToScreen(x, y) - prevPosition;
+            camera.eye = camera.eye + (motion * 0.001);
+            render();
+            glutPostRedisplay();
+         }
+         //else stopMotion(0, 1, x, y);
+         break;
+   }
+
+    cout << "Mouse: (" << x << "," << y << ")" << endl;
+}
+
+void initialize() {
+   //vector< vector<Color> > image(gPixelWidth, vector<Color>(gPixelHeight));
+   //
+   cout << "Initializing..." << endl;
+
+   gImage = new Color*[gPixelWidth];
+   for(int i=0; i < gPixelWidth; i++) {
+      gImage[i] = new Color[gPixelHeight];
+   }
+
+   pixelBuffer = new ByteColor[gPixelWidth * gPixelHeight];
    
    /* clear the colors */
    for(int x = 0; x < gPixelWidth; x++) {
       for(int y=0; y < gPixelHeight; y++) {
-         image[x][y].r = 0;
-         image[x][y].g = 0;
-         image[x][y].b = 0;
+         gImage[x][y].r = 0;
+         gImage[x][y].g = 0;
+         gImage[x][y].b = 0;
       }
    }
 
-   vector<GeomObject*> objects;
-   vector<Light*> lights;
-   Camera camera;
-   
+   for(int i=0; i < gPixelWidth * gPixelHeight; i++) {
+      pixelBuffer[i].r = 0;
+      pixelBuffer[i].g = 0;
+      pixelBuffer[i].b = 0;
+   }
+
    parse_file(objects, lights, &camera);
+
+   cout << "... done initializing." << endl;
+}
+
+void render(void) {
+
+   cout << "Rendering ..." << endl;
 
    Matrix4x4 cameraTransform = camera.transform();
    Matrix4x4 cameraVectorTransform = camera.vectorTransform();
@@ -125,12 +249,104 @@ int main(int argc, char **argv) {
 
          ray.direction = cameraVectorTransform * camera.pixelToScreen(x, y);
 
-         image[x][y] = raycast(ray, objects, lights, RECURSION_DEPTH);
+         gImage[x][y] = raycast(ray, objects, lights, RECURSION_DEPTH);
       }
    }
 
-   draw_image(image);
+   //draw_image(image);
+   cout << "... done rendering." << endl;
+
+   // export to pixel buffer
+   for(int x=0; x < gPixelWidth; x++) {
+      for(int y=0; y < gPixelHeight; y++) {
+         int index = (gPixelHeight - y - 1) * gPixelWidth + x;
+         pixelBuffer[index].r = gImage[x][y].r * 255.0;
+         pixelBuffer[index].g = gImage[x][y].g * 255.0;
+         pixelBuffer[index].b = gImage[x][y].b * 255.0;
+      }
+   }
+}
+
+void display (void) {
+/*
+   // this code executes whenever the window is redrawn (when opened,
+   //   moved, resized, etc.
+   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+   // set the viewing transform
+   setUpView();
+
+   // set up light source
+   setUpLight();
+
+   // start drawing objects
+   setUpModelTransform();
+
+   if (trackballMove) {
+      glPushMatrix();
+      glLoadIdentity();
+      glRotatef(angle, axis[0], axis[1], axis[2]);
+      glMultMatrixf((GLfloat *) trackballXform);
+      glGetFloatv(GL_MODELVIEW_MATRIX, trackballXform);
+      glPopMatrix();
+   }
+   glPushMatrix();
+   glMultMatrixf((GLfloat *) objectXform);
+   drawControlPoints();
+   //drawSphere();
+   //drawCube();
+   //drawText();
+   drawTriangle(1, t1Translate);
+   drawTriangle(1, t2Translate);
+   drawTriangle(1, t3Translate);
+   glPopMatrix();
+*/
+/* allocate the image */
+
+   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+   glDrawPixels(gPixelWidth, gPixelHeight, GL_RGB, GL_UNSIGNED_BYTE, pixelBuffer);
+
+   glutSwapBuffers();
+}
+
+int main(int argc, char **argv) {
+
+   parse_args(argc - 1, (const char **)(argv + 1));
+
+   if(gPixelWidth <= 0 || gPixelHeight <= 0 || gInputFileName.compare(string("")) == 0) {
+      printf("Usage: %s +W<int> +H<int> +I<pov input file>\n", argv[0]);
+      exit(-1);
+   }
+
+   printf("Valid args accepted\n");
+   printf("Width: %d\n", gPixelWidth);
+   printf("Height: %d\n", gPixelHeight);
+   printf("Input file: %s\n", gInputFileName.c_str());
    
+   glutInit(&argc, argv);
+   glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
+   glutInitWindowSize(gPixelWidth, gPixelHeight);
+   glutInitWindowPosition(100, 100);
+   glutCreateWindow("3D Ray Tracer");
+   printf("Interaction directions:\n\nLeft mouse button: hold down and drag to change orientation\n");
+   printf("Middle mouse button: hold down and drag to shift horizontally or vertically\n");
+   printf("Right mouse button: hold down and drag vertically to move in and out of the screen\n");
+    
+   glEnable(GL_DEPTH_TEST);
+   glutDisplayFunc(display);
+   //glutReshapeFunc(reshapeCallback);
+   //glutKeyboardFunc(keyCallback);
+   glutMouseFunc(mouseCallback);
+   glutMotionFunc(mouseMotion);
+   //glutTimerFunc(50,timeStep, 0);  // 50 millisecond callback
+   
+   initialize();
+   render();
+
+   glutMainLoop();
+
+
    return 0;
 }
 
@@ -299,7 +515,7 @@ void parse_file(vector<GeomObject*> & objects, vector<Light*> & lights, Camera *
    while( tokens.size() > 0) {
       if(!tokens.front().compare("camera")) {
          cout << "parsing camera" << endl;
-         *camera = Camera::parse(tokens);
+         *camera = Camera::parse(tokens, gPixelWidth, gPixelHeight);
       }
       else if(!tokens.front().compare("sphere")) {
          cout << "parsing sphere" << endl;
@@ -357,7 +573,7 @@ void draw_image(vector< vector<Color> > image) {
 
    cout << "Output filename: " << outputFileName << endl;
 
-   /* o	pen file */
+   /* open file */
    FILE * outputFile = fopen(outputFileName.c_str(), "w");
    if(NULL == outputFile) {
       perror("draw_image()");

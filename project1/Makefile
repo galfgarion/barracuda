@@ -1,9 +1,22 @@
+POVRAY = /home/ntblack/Desktop/povray-3.6/povray
+
 default: simplerecurse2
 
+povray: povray2
+	$(POVRAY) simp_cam0.pov
+	$(POVRAY) simp_cam1.pov
+	$(POVRAY) simp_cam2.pov
+	$(POVRAY) simp_cam3.pov
+	
+povray2:
+	$(POVRAY) simp_cam2.pov
+
+both2: simplecam2 povray2
+	
 make simplecam: simplecam0 simplecam1 simplecam2 simplecam3
 
 simplecam0: compile
-	./raytracer +W640 +H480 +Isimp_cam0.pov
+	./raytracer +W320 +H240 +Isimp_cam0.pov
 simplecam1: compile
 	./raytracer +W640 +H480 +Isimp_cam1.pov
 simplecam2: compile
@@ -18,7 +31,7 @@ marble2: compile
 	./raytracer +W640 +H480 +Imarble2.pov
 
 compile:
-	g++ -g -o raytracer main.cpp matrix4x4.cpp vector3.cpp
+	g++ -g -o raytracer main.cpp matrix4x4.cpp vector3.cpp -lglut
 
 simple: compile
 	./raytracer +W640 +H480 +Isimple.pov
